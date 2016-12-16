@@ -165,7 +165,7 @@ view(71,76); grid on; box on;
 % % axis([-0.05 0.15 -0.1 0.1 0 6]);
 
 %% Save Data
-save pqr.mat A n B1 B2 B3 V1 V2 V3 W1 W2 W3 p0 q0 r0 p1 q1 r1 eta Z
+save pqr.mat A L n B1 B2 B3 V1 V2 V3 W1 W2 W3 p0 q0 r0 p1 q1 r1 eta Z
 
 
 

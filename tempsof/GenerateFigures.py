@@ -11,29 +11,29 @@ FNAME=""
 FIGDIR=""
 
 # Load Data eta, Z(:,1), Z(:,2), Z(:,3) ------ eta, p(eta), q(eta), r(eta)
-mat = scipy.io.loadmat("pqr_2.mat")
+mat = scipy.io.loadmat("pqr.mat")
 
 # data was backward in time. change it in order of forward in time
 eta = mat['eta'][::-1]
 Z = mat['Z'][::-1]
 n = mat['n'][0,0]
-m = mat['m'][0,0]
+A = mat['A'][0,0]
+L = mat['L'][0,0]
 
 # preserve original variables
-eta_ = eta[:,0];
+eta_ = eta[:,0]
 p_ = Z[:,0]
 q_ = Z[:,1]
 r_ = Z[:,2]
 
+#figure(1)
+#myplot.plot(eta_,p_,eta_,q_,eta_,r_)
+
 # determine translation factor
-eta_ = eta_ - 25
+eta_ = eta_ - 40
 xi_ = sp.exp(eta_)
 
 # determine where to cutoff
-#CUT2 = size(eta,1);
-#CUT2 = floor(CUT2/1);
-#CUT2 = 4800;
-# CUT  = 135;
 CUT2 = 4800
 CUT = 200
 # cutoff the orbit
@@ -45,30 +45,45 @@ p    = p_[CUT:CUT2]
 q    = q_[CUT:CUT2]
 r    = r_[CUT:CUT2]
 
+#figure(2)
+#myplot.plot(eta,p,eta,q,eta,r)
+
+# constants
+m = 0
+D = 1+2*A-m-n
+a0,a1 = (2+2*A-n)   / D   , (2+2*A)       / D 
+b0,b1 = (1+m)       / D   , (1+m+n)       / D 
+c0,c1 = (2+2*m)     / D   , (2+2*m+2*n)   / D 
+d0,d1 = (-2*A+2*m+n)/ D   , (-2*A+2*m+2*n)/ D 
+a = a0 + a1*L
+b = b0 + b1*L
+c = c0 + c1*L
+d = d0 + d1*L
+
 # tilded variables stress, strain, strain rates, vertical velocity, functions of \xi
-tildegamma =       (( (p          )* (r**n)                                  ).real)**(1/(2-n));
-tildesigma =       (( (p**(-(1-n)))* (r**n)                                  ).real)**(1/(2-n));
-tildev     = 1/n * (( (p**(-(1-n)))* (r**n) ))**(1/(2-n))*np.sign(q)*np.abs(q);
-tildeu     =       (( (p          )* (r**2)                                  ).real)**(1/(2-n));
+tildev     = 1/b * ( (p**(-(A-n)))* (r**(n*(1+A))    ))**(1/D)*np.sign(q)*np.abs(q)
+tildetheta =       ( (p**(1+n)   )* (r**(n*(1+n))    ))**(1/D)
+tildesigma =       ( (p**(-(A-n)))* (r**(n*(1+A))    ))**(1/D)
+tildeu     =       ( (p**(1+A)   )* (r**(n*(1+A)+1)  ))**(1/D)
 
 # Bar Capital variables : stress, strain, strain rates, vertical velocity, functions of \xi
-VBar     = ( (xi)**(-n/(2-n)   ) ) * (tildev);
-GammaBar = ( (xi)**(-2/(2-n)   ) ) * (tildegamma);
-UBar     = ( (xi)**(-2/(2-n)   ) ) * (tildeu);
-SigmaBar = ( (xi)**( 1-n/(2-n) ) ) * (tildesigma);
+VBar     = ( (xi)**(-b1   ) ) * (tildev);
+ThetaBar = ( (xi)**(-c1   ) ) * (tildetheta);
+SigmaBar = ( (xi)**(-d1 ) ) * (tildesigma);
+UBar     = ( (xi)**(-b1-1   ) ) * (tildeu);
 
 # Odd extension
 xi       = np.concatenate((-xi[::-1]      , xi      ))
 VBar     = np.concatenate((-VBar[::-1]    , VBar    ))
 # Even extension
-GammaBar = np.concatenate((GammaBar[::-1] , GammaBar))
+ThetaBar = np.concatenate((ThetaBar[::-1] , ThetaBar))
 SigmaBar = np.concatenate((SigmaBar[::-1] , SigmaBar))
 UBar     = np.concatenate((UBar[::-1]     , UBar    ))
 
 
 # open figure windows
-fg = myplot.figure()
-fgp = fg.add_subplot(111)
+fth = myplot.figure()
+fthp = fth.add_subplot(111)
 fu = myplot.figure()
 fup = fu.add_subplot(111)
 fv = myplot.figure()
@@ -76,93 +91,99 @@ fvp = fv.add_subplot(111)
 fs = myplot.figure()
 fsp = fs.add_subplot(111)
 
+#fthp.plot(xi,ThetaBar)
+#fup.plot(xi,UBar)
+#fvp.plot(xi,VBar)
+#fsp.plot(xi,SigmaBar)
+
+
 poly=['k','b','r','g','m']
-mrk=['o','x','^','d','s']
+mrk=['o','x','^','d','s','*']
 
-tv = [0, 0.1, 0.2, 0.3, 0.4, 0.5]; js=-1; it=0
-for t in tv:         # for strain
-    g0  = 1.
-    tau = sp.log(1 + t/g0);
-    fac = (1+t/g0)**m;
-    x   = xi / fac;
-
-    gamma = (g0*(1+t/g0))     * (fac**(  2/(2-n)   ))   * GammaBar
-
-    #R = 25;
-    R = 3.5
-    fgp.plot(x,gamma,'b',linewidth=2);  
-    fgp.axis([-R,R,1e-2,4]);
-    fgp.set_ylabel('${\gamma}(x,t)$',fontsize=30)
-    fgp.set_xlabel('$x$',fontsize=25)
-    fgp.tick_params(labelsize=15)
-    fgp.set_yscale('log')
-    fgp.annotate('t='+str(tv[it]),xy=(0,max(gamma)),xycoords='data',xytext=(js*75,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
-    js*=-1; it+=1;
-    figname=FIGDIR+'strain_log.eps'
-    fg.savefig(figname, format='eps')
-
-
-tv = [0, 0.1, 0.2, 0.3, 0.5];  js=-1; it=0  
-for t in tv:     # for strain rate
-    g0  = 1.
-    tau = sp.log(1 + t/g0);
-    fac = (1+t/g0)**m;
-    x   = xi / fac;
-    u   = (fac**(  2/(2-n)   ))   * UBar;
+tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+for t in tv:         # for temperature
     
+    fac   = (t+1)**L;
+    theta = (t+1)**c * ThetaBar
+    x     = xi / fac;
+
     #R = 25;
-    R = 3.5
+    R = 40
+    fthp.plot(x,theta,'b', linewidth=2);#, markersize=8, marker=mrk[it], markevery=200, label='t='+str(tv[it]));  
+    fthp.axis([-R,R,1.0/80,5]);
+    fthp.set_ylabel(r"${\theta}(x,t)$",fontsize=30)
+    fthp.set_xlabel('$x$',fontsize=25)
+    fthp.tick_params(labelsize=15)
+    fthp.set_yscale('log')
+    fthp.annotate('t='+str(tv[it]),xy=(0,max(theta)),xycoords='data',xytext=(js*120,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
+    js*=-1; it+=1;
+    figname=FIGDIR+'temperature_log.pdf'
+    fth.savefig(figname, format='pdf')
+
+
+tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0   
+for t in tv:     # for strain rate
+    fac   = (t+1)**L;
+    u = (t+1)**(b+L) * UBar
+    x     = xi / fac;
+    
+
+    R = 10
     #fup.plot(x,u,'b');
-    fup.plot(x,u,linewidth=2, markersize=8, marker=mrk[it],markevery=200, label='t='+str(tv[it]));
-    fup.axis([-R,R,.8e-1,15],fontsize=30);
+    fup.plot(x,u,'b',linewidth=2)#, markersize=8, marker=mrk[it],markevery=200, label='t='+str(tv[it]));
+    fup.axis([-R,R,1e-2,1.1],fontsize=30);
     fup.set_ylabel('$u(x,t)$',fontsize=30)
     fup.set_xlabel('$x$',fontsize=25)
     fup.tick_params(labelsize=15)
     fup.set_yscale('log')
     fup.legend(loc=2)
-    #fup.annotate('t='+str(tv[it]),xy=(0,max(u)),xycoords='data',xytext=(js*75,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
+    fup.annotate('t='+str(tv[it]),xy=(0,max(u)),xycoords='data',xytext=(js*120,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
     js*=-1; it+=1;    
-    figname=FIGDIR+'strain_rate_log.eps'
-    fu.savefig(figname, format='eps')
-  
-tv = [ 0, 0.1, 0.2, 0.3, 0.5]; js=-1; it=0  
-
-for t in tv:       # for v and sigma 
-    g0  = 1.
-    tau = sp.log(1 + t/g0);
-    fac = (1+t/g0)**m;
-    x   = xi / fac;
+    figname=FIGDIR+'strain_rate_log.pdf'
+    fu.savefig(figname, format='pdf')
     
-    sigma = (1/(g0*(1+t/g0))) * (fac**( -1+n/(2-n) ))   * SigmaBar;
-    v     =                (fac**(  n/(2-n)   ))   * VBar; 
+tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+for t in tv:       # for v and sigma 
+    fac   = (t+1)**L;
+    v     = (t+1)**b * VBar
+    x     = xi / fac;
 
-    R = 25;
+    R = 30;
     fvp.plot(x,v,linewidth=2, markersize=8, marker=mrk[it], markevery=200, label='t='+str(tv[it]));  
     #fvp.plot(x,v,'b')
-    fvp.axis([-R,R,-4,4]);
+    fvp.axis([-R,R,-1.9,1.9]);
     fvp.set_ylabel('$v(x,t)$',fontsize=30)
     fvp.set_xlabel('$x$',fontsize=25)
     fvp.tick_params(labelsize=15)
     fvp.legend(loc=2)
+    it+=1
     #fvp.annotate('t='+str(tv[it]),xy=(js*x[2300+js*it*150],js*v[2300+js*it*150]),xycoords='data',xytext=(js*100,-45),fontsize=15,textcoords='offset points',arrowprops=dict(arrowstyle="->"))
-    figname=FIGDIR+'velocity.eps'
-    fv.savefig(figname, format='eps')   
+    figname=FIGDIR+'velocity.pdf'
+    fv.savefig(figname, format='pdf')   
     
+
+tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+for t in tv:       # for v and sigma 
+    fac   = (t+1)**L;
+    sigma = (t+1)**d * SigmaBar
+    x     = xi / fac;
+
+    R = 60;
+
     fsp.plot(x,sigma,'b',linewidth=2);  
-    fsp.axis([-R,R,5e-1,200]); 
-    fsp.set_ylabel('${\sigma}(x,t)$', fontsize=30)
+    fsp.axis([-R,R,2e-1,40]); 
+    fsp.set_ylabel("${\sigma}(x,t)$", fontsize=30)
     fsp.set_xlabel('$x$',fontsize=25)
     fsp.tick_params(labelsize=15)
     fsp.set_yscale('log')
     yl=10; yr=40; ly=(yr-yl)/2.; my=(yr+yl)/2.;
-    fsp.annotate('t='+str(tv[it]),xy=(0,min(sigma)),xycoords='data',xytext=(js*85,ly*js+my),fontsize=15,textcoords='offset points',arrowprops=dict(arrowstyle="->"))
+    fsp.annotate('t='+str(tv[it]),xy=(0,min(sigma)),xycoords='data',xytext=(js*120,ly*js+my),fontsize=15,textcoords='offset points',arrowprops=dict(arrowstyle="->"))
     js*=-1; it+=1;
-    figname=FIGDIR+'stress_log.eps'
-    fs.savefig(figname, format='eps')
+    figname=FIGDIR+'stress_log.pdf'
+    fs.savefig(figname, format='pdf')
+#myplot.show()
 
-myplot.show()
 
-#
 #figure(1);
 #xlabel('$x$','interpreter','latex'); 
 #ylabel('${\gamma}(x,t)$','interpreter', 'latex');    
@@ -192,4 +213,4 @@ myplot.show()
 #set(ylabh, 'Units', 'Normalized')
 #set(ylabh, 'Position',get(ylabh,'Position').*[1.7,1,1])
 #hold off;
-#
+
