@@ -1,0 +1,36 @@
+#NDIM : dimension of the dynamical system
+#NBC  : number of boundary conditions
+#NINT : number of integral conditions
+#NPAR : max number of dimensions of parameter space
+#JAC  : JAC=1 if Jacobian is supplied by me.
+#ICP  : Indices of the free parameters to continue
+#IRS  : 0 if start from user defined starting point, i if start from exsiting solution labeled by i
+#IPS  : problem type, 4 is the boundary value problem.
+#ILP  : 0 if runner does not detect folds. (What are folds?)
+#ISP  : 0 if runner does not detect Hopf bifurcation (What is Hopf bifurcation?)
+#RL0  : lower bound of principal continuation parameter (The first ICP index)
+#RL1  : upper bound of principal continuation parameter (The first ICP index)
+#UZR  : The parameter value at which output is generated.
+
+NDIM=   4, NBC= 10, NINT=1, NPAR= 12, THL =  {}, THU =  {}
+
+unames   ={1:"P", 2:"Q", 3:"R", 4:"S"}
+parnames ={1:"N", 2:"ALPHA", 3:"M", 4:"LAMBDA", 5:"E0", 6:"E1"}
+
+RL0 = 0.0, RL1 = 1.0
+
+# Continuation parameter index
+ICP =  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+UZR =  {1: [0.01, 0.02, 0.05, 0.1]}
+UZSTOP = {1: [0.0, 1.0]}
+
+
+# These concern on the mode or runner and discretization aspects.
+JAC= 0, IPS =   4, IRS =   0, ILP =   0
+NTST=  25, NCOL=   4, IAD =   3, ISP =   0, ISW = 1, IPLT= 0
+NMX=  100, NPR=  100, MXBF=   8, IID =   2, ITMX= 8, ITNW= 7, NWTN= 3, JAC= 0
+EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
+DS  =  0.01, DSMIN= 0.001, DSMAX=  0.05, IADS=   1
+
+
