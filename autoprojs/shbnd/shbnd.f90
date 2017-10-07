@@ -31,7 +31,6 @@
 !           PAR(24): 
 !           PAR(25): c1 coefficient 
 !           PAR(26): 
-
 !           PAR(27): PERIOD
 !           PAR(28): mu01
 !           PAR(29): mu02
@@ -56,7 +55,7 @@
 
 	CALL FFFF(3,U,ICP,PAR,0,F,DUMMY)
 
-	PERIOD=PAR(11)
+	PERIOD=PAR(27)
 	F(1)=PERIOD*F(1)
 	F(2)=PERIOD*F(2)
 	F(3)=PERIOD*F(3)
@@ -93,6 +92,60 @@
 
       END SUBROUTINE FFFF
 
+      SUBROUTINE RRRR(K,X,R,PAR)
+!     ---------- ----
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: K
+      DOUBLE PRECISION, INTENT(IN) :: X, PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: R
+      DOUBLE PRECISION A, M, N, L, D, a, b, DUMMY1, DUMMY2, DUMMY3, Z
+      DOUBLE PRECISION R0, R1, S0, S1, Q00, R00, EPS0
+      INTEGER i
+
+        A=PAR(1)
+        M=PAR(2)
+	N=PAR(3)
+	L=PAR(4)
+		
+		
+	D=1.D0 + 2.D0*A - M - N
+	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+
+! Equilibrium points
+	R0 = a
+	R1 = R0 - (1.D0+A)*L/(A-M-N)
+	S0 = (1+M+N)/(1+A) - N/(R0*(1+A))
+	S1 = (1+M+N)/(1+A) - N/(R1*(1+A))
+
+
+! Explicit solution tangent to X02 at M0
+	EPS0 = 1.D-4
+	Q00 = 0.D0 + EPS0*1.D0*X02(2)
+	R00 = R0 + EPS0*1.D0*X02(3)
+
+	Z = -a*(M+N)/L
+
+	DUMMY1 = (  1.D0/ ( 1-Q00 + Q00*DEXP(X) )  )**K
+
+	DUMMY2 = 0.D0
+	DO i = 0, K
+		DUMMY2 = DUMMY2 + ( ( (1-Q00)**i ) * ( Q00**(K-i) ) * ( DEXP(X*(K-i)) )  ) / (K*Z-K+i)
+	END DO
+	DUMMY2 = DUMMY2*R00*Z/a
+
+	DUMMY3 = 0.D0
+	DO i = 0, K
+		DUMMY3 = DUMMY3 + ( ( (1-Q00)**i ) * ( Q00**(K-i) )  ) / (K*Z-K+i)
+	END DO
+	DUMMY3 = DUMMY3*R00*Z/a
+	DUMMY3 = (1.D0 - DUMMY3) * (DEXP(K*Z*X))
+
+	R = R00 / (  DUMMY1*(DUMMY2 + DUMMY3)  )
+
+      END SUBROUTINE RRRR
+
 
       SUBROUTINE STPNT(NDIM,U,PAR,T)
 !     ---------- -----
@@ -107,6 +160,7 @@
       DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, DUMMY
       DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
       DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XEND
+      INTEGER K
 
 ! T runs in [0,1]			: SCALED VAR
 ! X runs in [-PERIOD/2, PERIOD/2]	: ORIGINAL VAR
@@ -123,6 +177,7 @@
         M=-0.5D0
 	N=0.25D0
 	L=0.25D0
+	K=4
 		
 	D=1.D0 + 2.D0*A - M - N
 	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
@@ -154,7 +209,7 @@
 	XEND = PERIOD/2.D0
 	P11 = 0.D0
 	Q11 = 1.D0/( 1.D0 + C1*DEXP(-XEND) )
-	R11 = ########
+	CALL RRRR(K,XEND,R11,PAR)
 	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
 
 ! Provide the eigenvectors with unit length
@@ -298,7 +353,7 @@
 	X=PERIOD*(T-0.5)
 	P = 0.D0
 	Q = 1.D0/( 1 + C1*DEXP(-X) )
-	R = #############
+	CALL RRRR(K,X,R,PAR)
 
 	U(1)= P
 	U(2)= Q
@@ -326,8 +381,20 @@
       DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12
       DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
 
+        A=PAR(1)
+        M=PAR(2)
+	N=PAR(3)
+	L=PAR(4)
+
 	EPS0=PAR(5)
 	EPS1=PAR(6)
+		
+	D=1.D0 + 2.D0*A - M - N
+	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+
+	R0 = a
+	R1 = R0 - (1.D0+A)*L/(A-M-N)
 
 ! unit length coefficients
 	FB(1)= PAR(22)**2 + PAR(23)**2 + PAR(24)**2 -1
@@ -336,26 +403,13 @@
 ! boundary values
 	FB(3)= U0(1) - EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) 
 	FB(4)= U0(2) - EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) 
-	FB(5)= U0(3) - EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) 
+	FB(5)= U0(3) - R0 - EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) 
 
-	FB(6)= U1(1) - EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) 
-	FB(7)= U1(2) - EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) 
-	FB(8)= U1(3) - EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) 
+	FB(6)= U1(1)         - EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) 
+	FB(7)= U1(2) - 1.0D0 - EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) 
+	FB(8)= U1(3) - R1    - EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) 
 
-!       A=PAR(1)
-!       M=PAR(2)
-!	N=PAR(3)
-!	L=PAR(4)
-!
-!	EPS0=PAR(5)
-!	EPS1=PAR(6)
-!		
-!	D=1.D0 + 2.D0*A - M - N
-!	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-!	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
-!
-!	R0 = a
-!	R1 = R0 - (1.D0+A)*L/(A-M-N)
+
 !
 ! Provide the eigenvectors with unit length
 !	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
