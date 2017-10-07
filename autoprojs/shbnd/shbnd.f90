@@ -320,61 +320,116 @@
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 ! Local
       INTEGER, PARAMETER :: NDM=3
-!      DOUBLE PRECISION V0(NDM),V1(NDM),G0(NDM),G1(NDM)
       DOUBLE PRECISION MAT0(NDM,NDM),MAT1(NDM,NDM)
 
       DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, a, b, R0, R1
       DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12
-!      DOUBLE PRECISION X01(NDM), X01(NDM), X01(NDM), X01(NDM)
-!      DOUBLE PRECISION c01, c02, c03, c11, c12
-
-
-        A=PAR(1)
-        M=PAR(2)
-	N=PAR(3)
-	L=PAR(4)
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
 
 	EPS0=PAR(5)
 	EPS1=PAR(6)
-		
-	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
 
-	R0 = a
-	R1 = R0 - (1.D0+A)*L/(A-M-N)
+! unit length coefficients
+	FB(1)= PAR(22)**2 + PAR(23)**2 + PAR(24)**2 -1
+	FB(2)= PAR(25)**2 + PAR(26)**2 -1
 
+! boundary values
+	FB(3)= U0(1) - EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) 
+	FB(4)= U0(2) - EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) 
+	FB(5)= U0(3) - EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) 
+
+	FB(6)= U1(1) - EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) 
+	FB(7)= U1(2) - EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) 
+	FB(8)= U1(3) - EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) 
+
+!       A=PAR(1)
+!       M=PAR(2)
+!	N=PAR(3)
+!	L=PAR(4)
+!
+!	EPS0=PAR(5)
+!	EPS1=PAR(6)
+!		
+!	D=1.D0 + 2.D0*A - M - N
+!	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+!	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+!
+!	R0 = a
+!	R1 = R0 - (1.D0+A)*L/(A-M-N)
+!
+! Provide the eigenvectors with unit length
+!	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
+!	 X01(1)=1.D0
+!	 X01(2)=b*R0
+!	 X01(3)=-(L+b)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
+!         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 )
+!	 X01(1)=X01(1)/DUMMY
+!	 X01(2)=X01(2)/DUMMY
+!	 X01(3)=X01(3)/DUMMY
+!
+!	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu02/S0 ) - (N/R0)*( 1.D0/L + mu02 )*( R0/L + mu02/S0 )
+!	 X02(1)=0.D0
+!	 X02(2)=1.D0
+!	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
+!         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 )
+!	 X02(1)=X02(1)/DUMMY
+!	 X02(2)=X02(2)/DUMMY
+!	 X02(3)=X02(3)/DUMMY
+!
+!	 X03(1)=0.D0
+!	 X03(2)=0.D0
+!	 X03(3)=1.D0
+!
+!	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
+!	 X11(1)=1.D0
+!	 X11(2)=(B-L)*R1/(1.D0+mu11)
+!	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
+!        DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )
+!	 X11(1)=X11(1)/DUMMY
+!	 X11(2)=X11(2)/DUMMY
+!	 X11(3)=X11(3)/DUMMY
+!
+!	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu12/s1 ) - (N/R1)*( 1.D0/L + mu12 )*( R1/L + mu12/S1 )
+!	 X12(1)=0.D0
+!	 X12(2)=1.D0
+!	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
+!        DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 )
+!	 X12(1)=X12(1)/DUMMY
+!	 X12(2)=X12(2)/DUMMY
+!	 X12(3)=X12(3)/DUMMY
+!
+!
 ! Linearized Matrix at M0
-	MAT0(1,1) = 2.D0
-	MAT0(1,2) = 0.D0
-	MAT0(1,3) = 0.D0
-	MAT0(2,1) = b*R0
-	MAT0(2,2) = 1.D0
-	MAT0(2,3) = 0.D0
-	MAT0(3,1) = (R0*L)*R0/N
-	MAT0(3,2) = R0/N
-	MAT0(3,3) = (  (A-M-N)/(L*(1.D0+A)) - N*A/( L*(1.D0+A)*R0 )   )*R0/N
-
+!	MAT0(1,1) = 2.D0
+!	MAT0(1,2) = 0.D0
+!	MAT0(1,3) = 0.D0
+!	MAT0(2,1) = b*R0
+!	MAT0(2,2) = 1.D0
+!	MAT0(2,3) = 0.D0
+!	MAT0(3,1) = (R0*L)*R0/N
+!	MAT0(3,2) = R0/N
+!	MAT0(3,3) = (  (A-M-N)/(L*(1.D0+A)) - N*A/( L*(1.D0+A)*R0 )   )*R0/N
+!
 ! Linearized Matrix at M1
-	MAT1(1,1) = -(1.D0+M+N)/(A-M-N)
-	MAT1(1,2) = 0.D0
-	MAT1(1,3) = 0.D0
-	MAT1(2,1) = (b-L)*R1
-	MAT1(2,2) = -1.D0
-	MAT1(2,3) = 0.D0
-	MAT1(3,1) = (R1*L)*R1/N
-	MAT1(3,2) = R1/N
-	MAT1(3,3) = (  (A-M-N)/(L*(1.D0+A)) - N*A/( L*(1.D0+A)*R1 )   )*R1/N
-
+!	MAT1(1,1) = -(1.D0+M+N)/(A-M-N)
+!	MAT1(1,2) = 0.D0
+!	MAT1(1,3) = 0.D0
+!	MAT1(2,1) = (b-L)*R1
+!	MAT1(2,2) = -1.D0
+!	MAT1(2,3) = 0.D0
+!	MAT1(3,1) = (R1*L)*R1/N
+!	MAT1(3,2) = R1/N
+!	MAT1(3,3) = (  (A-M-N)/(L*(1.D0+A)) - N*A/( L*(1.D0+A)*R1 )   )*R1/N
+!
 ! positive eigenvalue at M0
-	mu01 = 2.D0
-	mu02 = 1.D0
-	mu03 = -(M+N)*a/(N*L)
-
+!	mu01 = 2.D0
+!	mu02 = 1.D0
+!	mu03 = -(M+N)*a/(N*L)
+!
 ! negative eigenvalue at M1
-	mu11 = -(1.D0+M+N)/(A-M-N)
-	mu12 = -1.D0
-
+!	mu11 = -(1.D0+M+N)/(A-M-N)
+!	mu12 = -1.D0
+!
 ! let AUTO compute the eigenvectors
 !	FB(1)= MAT0(1,1)*X01(1) + MAT0(1,2)*X01(2) + MAT0(1,3)*X01(3)- mu01*X01(1)
 !	FB(2)= MAT0(2,1)*X01(1) + MAT0(2,2)*X01(2) + MAT0(2,3)*X01(3)- mu01*X01(2)
@@ -397,45 +452,58 @@
 !	FB(15)= MAT0(3,1)*X12(1) + MAT0(3,2)*X12(2) + MAT0(3,3)*X12(3)- mu01*X12(3)
 
 ! let AUTO compute the eigenvectors
-	FB(1)= MAT0(1,1)*PAR(7) + MAT0(1,2)*PAR(8) + MAT0(1,3)*PAR(9)- mu01*PAR(7)
-	FB(2)= MAT0(2,1)*PAR(7) + MAT0(2,2)*PAR(8) + MAT0(2,3)*PAR(9)- mu01*PAR(8)
-	FB(3)= MAT0(3,1)*PAR(7) + MAT0(3,2)*PAR(8) + MAT0(3,3)*PAR(9)- mu01*PAR(9)
-
-	FB(4)= MAT0(1,1)*PAR(10) + MAT0(1,2)*PAR(11) + MAT0(1,3)*PAR(12)- mu02*PAR(10)
-	FB(5)= MAT0(2,1)*PAR(10) + MAT0(2,2)*PAR(11) + MAT0(2,3)*PAR(12)- mu02*PAR(11)
-	FB(6)= MAT0(3,1)*PAR(10) + MAT0(3,2)*PAR(11) + MAT0(3,3)*PAR(12)- mu02*PAR(12)
-
-	FB(7)= MAT0(1,1)*PAR(13) + MAT0(1,2)*PAR(14) + MAT0(1,3)*PAR(15)- mu03*PAR(13)
-	FB(8)= MAT0(2,1)*PAR(13) + MAT0(2,2)*PAR(14) + MAT0(2,3)*PAR(15)- mu03*PAR(14)
-	FB(9)= MAT0(3,1)*PAR(13) + MAT0(3,2)*PAR(14) + MAT0(3,3)*PAR(15)- mu03*PAR(15)
-
-	FB(10)= MAT1(1,1)*PAR(16) + MAT1(1,2)*PAR(17) + MAT1(1,3)*PAR(18)- mu11*PAR(16)
-	FB(11)= MAT1(2,1)*PAR(16) + MAT1(2,2)*PAR(17) + MAT1(2,3)*PAR(18)- mu11*PAR(17)
-	FB(12)= MAT1(3,1)*PAR(16) + MAT1(3,2)*PAR(17) + MAT1(3,3)*PAR(18)- mu11*PAR(18)
-
-	FB(13)= MAT1(1,1)*PAR(19) + MAT1(1,2)*PAR(20) + MAT1(1,3)*PAR(21)- mu12*PAR(19)
-	FB(14)= MAT1(2,1)*PAR(19) + MAT1(2,2)*PAR(20) + MAT1(2,3)*PAR(21)- mu12*PAR(20)
-	FB(15)= MAT1(3,1)*PAR(19) + MAT1(3,2)*PAR(20) + MAT1(3,3)*PAR(21)- mu12*PAR(21)
-
+!	FB(1)= MAT0(1,1)*PAR(7) + MAT0(1,2)*PAR(8) + MAT0(1,3)*PAR(9)- mu01*PAR(7)
+!	FB(2)= MAT0(2,1)*PAR(7) + MAT0(2,2)*PAR(8) + MAT0(2,3)*PAR(9)- mu01*PAR(8)
+!	FB(3)= MAT0(3,1)*PAR(7) + MAT0(3,2)*PAR(8) + MAT0(3,3)*PAR(9)- mu01*PAR(9)
+!
+!	FB(4)= MAT0(1,1)*PAR(10) + MAT0(1,2)*PAR(11) + MAT0(1,3)*PAR(12)- mu02*PAR(10)
+!	FB(5)= MAT0(2,1)*PAR(10) + MAT0(2,2)*PAR(11) + MAT0(2,3)*PAR(12)- mu02*PAR(11)
+!	FB(6)= MAT0(3,1)*PAR(10) + MAT0(3,2)*PAR(11) + MAT0(3,3)*PAR(12)- mu02*PAR(12)
+!
+!	FB(7)= MAT0(1,1)*PAR(13) + MAT0(1,2)*PAR(14) + MAT0(1,3)*PAR(15)- mu03*PAR(13)
+!	FB(8)= MAT0(2,1)*PAR(13) + MAT0(2,2)*PAR(14) + MAT0(2,3)*PAR(15)- mu03*PAR(14)
+!	FB(9)= MAT0(3,1)*PAR(13) + MAT0(3,2)*PAR(14) + MAT0(3,3)*PAR(15)- mu03*PAR(15)
+!
+!	FB(10)= MAT1(1,1)*PAR(16) + MAT1(1,2)*PAR(17) + MAT1(1,3)*PAR(18)- mu11*PAR(16)
+!	FB(11)= MAT1(2,1)*PAR(16) + MAT1(2,2)*PAR(17) + MAT1(2,3)*PAR(18)- mu11*PAR(17)
+!	FB(12)= MAT1(3,1)*PAR(16) + MAT1(3,2)*PAR(17) + MAT1(3,3)*PAR(18)- mu11*PAR(18)
+!
+!	FB(13)= MAT1(1,1)*PAR(19) + MAT1(1,2)*PAR(20) + MAT1(1,3)*PAR(21)- mu12*PAR(19)
+!	FB(14)= MAT1(2,1)*PAR(19) + MAT1(2,2)*PAR(20) + MAT1(2,3)*PAR(21)- mu12*PAR(20)
+!	FB(15)= MAT1(3,1)*PAR(19) + MAT1(3,2)*PAR(20) + MAT1(3,3)*PAR(21)- mu12*PAR(21)
 ! unit length eigenvectors
-	FB(16)= PAR(7)**2  + PAR(8)**2  + PAR(9)**2  -1
-	FB(17)= PAR(10)**2 + PAR(11)**2 + PAR(12)**2 -1
-	FB(18)= PAR(13)**2 + PAR(14)**2 + PAR(15)**2 -1
-	FB(19)= PAR(16)**2 + PAR(17)**2 + PAR(18)**2 -1
-	FB(20)= PAR(19)**2 + PAR(20)**2 + PAR(21)**2 -1
-
-! unit length coefficients
-	FB(21)= PAR(22)**2 + PAR(23)**2 + PAR(24)**2 -1
-	FB(22)= PAR(25)**2 + PAR(26)**2 -1
-
-! boundary values
-	FB(23)= U0(1) - EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) 
-	FB(24)= U0(2) - EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) 
-	FB(25)= U0(3) - EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) 
-
-	FB(26)= U1(1) - EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) 
-	FB(27)= U1(2) - EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) 
-	FB(28)= U1(3) - EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) 
+!	FB(16)= PAR(7)**2  + PAR(8)**2  + PAR(9)**2  -1
+!	FB(17)= PAR(10)**2 + PAR(11)**2 + PAR(12)**2 -1
+!	FB(18)= PAR(13)**2 + PAR(14)**2 + PAR(15)**2 -1
+!	FB(19)= PAR(16)**2 + PAR(17)**2 + PAR(18)**2 -1
+!	FB(20)= PAR(19)**2 + PAR(20)**2 + PAR(21)**2 -1
+! use explicit formulas for eigenvectors
+!	FB(9)=PAR(7)-X01(1)
+!	FB(10)=PAR(8)-X01(2)
+!	FB(11)=PAR(9)-X01(3)
+!
+!	FB(12)=PAR(10)-X02(1)
+!	FB(13)=PAR(11)-X02(2)
+!	FB(14)=PAR(12)-X02(3)
+!
+!	FB(15)=PAR(13)-X03(1)
+!	FB(16)=PAR(14)-X03(2)
+!	FB(17)=PAR(15)-X03(3)
+!
+!	FB(18)=PAR(16)-X11(1)
+!	FB(19)=PAR(17)-X11(2)
+!	FB(20)=PAR(18)-X11(3)
+!
+!	FB(21)=PAR(19)-X12(1)
+!	FB(22)=PAR(20)-X12(2)
+!	FB(23)=PAR(21)-X12(3)
+!
+! use explicit formulas for eigenvalues
+!	FB(24)=PAR(28)-mu01
+!	FB(25)=PAR(29)-mu02
+!	FB(26)=PAR(30)-mu03
+!	FB(27)=PAR(31)-mu11
+!	FB(28)=PAR(32)-mu12
 
 
       END SUBROUTINE BCND
