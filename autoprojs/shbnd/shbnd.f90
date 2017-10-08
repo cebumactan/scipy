@@ -283,6 +283,8 @@
 	P11 = 0.D0
 	Q11 = 1.D0/( 1.D0 + C1*DEXP(-(XMAX)) )
 
+	WRITE(*,*) mu01, mu02, mu03, mu11, mu12
+
 !           PAR(1) : A = alpha
 !           PAR(2) : M = m
 !           PAR(3) : N = n
@@ -373,35 +375,11 @@
 
 	CALL RRRR(XMIN,R00,PAR)
 	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
-
-!	VEC(1) = P00-0.D0
-!	VEC(2) = Q00-0.D0
-!	VEC(3) = R00-R0
-!	CC0 = VEC(1)*X01(1) + VEC(2)*X01(2) + VEC(3)*X01(3)
-!	CC1 = VEC(1)*X02(1) + VEC(2)*X02(2) + VEC(3)*X02(3)
-!	CC2 = VEC(1)*X03(1) + VEC(2)*X03(2) + VEC(3)*X03(3)
-!	EPS0 = SQRT( (CC0)**2 + (CC1)**2 + (CC2)**2 )
 	PAR(5) = EPS0
-!	PAR(22) = CC0/EPS0
-!	PAR(23) = CC1/EPS0
-!	PAR(24) = CC2/EPS0
 
 	CALL RRRR(XMAX,R11,PAR)
 	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
-!	VEC(1) = 0.D0
-!	VEC(2) = Q11-0.D0
-!	VEC(3) = R11-R1
-!	CC0 = VEC(1)*X11(1) + VEC(2)*X11(2) + VEC(3)*X11(3)
-!	CC1 = VEC(1)*X12(1) + VEC(2)*X12(2) + VEC(3)*X12(3)
-!	EPS1 = SQRT( (CC0)**2 + (CC1)**2 )
 	PAR(6) = EPS1
-!	PAR(25) = CC0/EPS1
-!	PAR(26) = CC1/EPS1
-
-	WRITE(*,*) PAR(22), PAR(23), PAR(24), PAR(25), PAR(26)
-        !WRITE(*,*) X02(1), 0.0D0 + EPS0*PAR(23)*X02(2), R0+EPS0*PAR(23)*X02(3)
-        !WRITE(*,*) X12(1), 1.0D0 + EPS1*PAR(26)*X12(2), R1+EPS1*PAR(26)*X12(3)
-	
 
        ENDIF
 
@@ -427,6 +405,7 @@
 
 
 
+! Constraints
       SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
 !     ---------- ----
 
@@ -464,13 +443,13 @@
 	FB(2)= PAR(25)**2 + PAR(26)**2 -1
 
 ! boundary values
-	FB(3)= U0(1) - EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) 
-	FB(4)= U0(2) - EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) 
-	FB(5)= U0(3) - R0 - EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) 
+	FB(3)= U0(1) - ( 0.0D0 + EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) )
+	FB(4)= U0(2) - ( 0.0D0 + EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) )
+	FB(5)= U0(3) - ( R0    + EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) )
 
-	FB(6)= U1(1)         - EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) 
-	FB(7)= U1(2) - 1.0D0 - EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) 
-	FB(8)= U1(3) - R1    - EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) 
+	FB(6)= U1(1) - ( 0.0D0 + EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) )
+	FB(7)= U1(2) - ( 1.0D0 + EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) )
+	FB(8)= U1(3) - ( R1    + EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) )
 
 
 !
