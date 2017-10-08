@@ -37,7 +37,11 @@
 !           PAR(30): mu03
 !           PAR(31): mu11
 !           PAR(32): mu12
-!
+!	    PAR(33): K    My Convenient Constants From Here
+!	    PAR(34): E0
+!	    PAR(35): F0
+!	    PAR(36): C1
+!	    PAR(37): Q00
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
@@ -71,7 +75,7 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
 
-      DOUBLE PRECISION A, M, N, L, D, a, b, P, Q, R
+      DOUBLE PRECISION A, M, N, L, D, aa, bb, P, Q, R
 
         A=PAR(1)
         M=PAR(2)
@@ -79,70 +83,97 @@
 	L=PAR(4)
 		
 	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
 
         P=U(1)
 	Q=U(2)
 	R=U(3)
 
-        F(1)= P * ( (R-a)/L + 2.D0 - L*P*R - Q  )
-        F(2)= Q * (  1.D0 - L*P*R - Q  ) + b*P*R
-        F(3)= R * ( (R-a)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q  ) / N
+        F(1)= P * ( (R-aa)/L + 2.D0 - L*P*R - Q  )
+        F(2)= Q * (  1.D0 - L*P*R - Q  ) + bb*P*R
+        F(3)= R * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q  ) / N
 
       END SUBROUTINE FFFF
 
-      SUBROUTINE RRRR(K,X,R,PAR)
+
+      SUBROUTINE FAC(K,VAL)
 !     ---------- ----
 
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: K
+      DOUBLE PRECISION, INTENT(OUT) :: VAL
+      INTEGER j
+
+        VAL=1.D0
+	DO j=1,K
+	    VAL=VAL*j
+	END DO
+      END SUBROUTINE FAC
+      
+
+      SUBROUTINE COMB(K,J,VAL)
+!     ---------- ----
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: K,J
+      DOUBLE PRECISION, INTENT(OUT) :: VAL
+      DOUBLE PRECISION DUMMY
+	CALL FAC(K,DUMMY)
+	VAL = DUMMY
+	CALL FAC(J,DUMMY)
+	VAL = VAL/ DUMMY
+	CALL FAC(K-J,DUMMY)
+	VAL = VAL/ DUMMY
+
+      END SUBROUTINE COMB
+
+
+      SUBROUTINE RRRR(X,R,PAR)
+!     ---------- ----
+
+      IMPLICIT NONE
       DOUBLE PRECISION, INTENT(IN) :: X, PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: R
-      DOUBLE PRECISION A, M, N, L, D, a, b, DUMMY1, DUMMY2, DUMMY3, Z
-      DOUBLE PRECISION R0, R1, S0, S1, Q00, R00, EPS0
-      INTEGER i
+      DOUBLE PRECISION A, M, N, L, D, aa, bb, PERIOD
+      DOUBLE PRECISION R0, R1, Q00, R00, EPS0, NUMERATOR, DENOM, Z, DUMMY,E0, F0, C1, XMAX
+      INTEGER K,j
 
         A=PAR(1)
         M=PAR(2)
 	N=PAR(3)
 	L=PAR(4)
+	K=PAR(33)
+	C1=PAR(36)
+
+	PERIOD = PAR(27)
+	XMAX = 0.5*PERIOD
 		
 		
 	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
 
 ! Equilibrium points
-	R0 = a
+	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)
-	S0 = (1+M+N)/(1+A) - N/(R0*(1+A))
-	S1 = (1+M+N)/(1+A) - N/(R1*(1+A))
 
+! Some Constants
+	Z = -aa*(M+N)/L
+	E0 = C1/(C1 + DEXP(XMAX))
+	F0 =  1/(C1 + DEXP(XMAX))
 
-! Explicit solution tangent to X02 at M0
-	EPS0 = 1.D-4
-	Q00 = 0.D0 + EPS0*1.D0*X02(2)
-	R00 = R0 + EPS0*1.D0*X02(3)
+	NUMERATOR = aa*( (E0+F0*DEXP(X))**K )
 
-	Z = -a*(M+N)/L
-
-	DUMMY1 = (  1.D0/ ( 1-Q00 + Q00*DEXP(X) )  )**K
-
-	DUMMY2 = 0.D0
-	DO i = 0, K
-		DUMMY2 = DUMMY2 + ( ( (1-Q00)**i ) * ( Q00**(K-i) ) * ( DEXP(X*(K-i)) )  ) / (K*Z-K+i)
+	DENOM = 0.D0
+	DO j = 0, K
+		CALL COMB(K,j,DUMMY)
+		DENOM = DENOM +  ( DUMMY* ( E0**(K-j) ) * ( F0**j ) * DEXP(j*X) ) / (-K*Z+j)
 	END DO
-	DUMMY2 = DUMMY2*R00*Z/a
+	DENOM = DENOM*(-K*Z)
 
-	DUMMY3 = 0.D0
-	DO i = 0, K
-		DUMMY3 = DUMMY3 + ( ( (1-Q00)**i ) * ( Q00**(K-i) )  ) / (K*Z-K+i)
-	END DO
-	DUMMY3 = DUMMY3*R00*Z/a
-	DUMMY3 = (1.D0 - DUMMY3) * (DEXP(K*Z*X))
 
-	R = R00 / (  DUMMY1*(DUMMY2 + DUMMY3)  )
+	R = NUMERATOR / DENOM
 
       END SUBROUTINE RRRR
 
@@ -155,68 +186,57 @@
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
 
+      INTEGER, PARAMETER :: NDM=3
       DOUBLE PRECISION PERIOD, X, EPS0, EPS1
-      DOUBLE PRECISION A, M, N, L, D, a, b, P, Q, R
+      DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R
       DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, DUMMY
       DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
-      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XEND
-      INTEGER K
+      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0
+      INTEGER K,j
 
 ! T runs in [0,1]			: SCALED VAR
-! X runs in [-PERIOD/2, PERIOD/2]	: ORIGINAL VAR
-! i.e., X = PERIOD(T-1/2)
+! X runs in [-0.5*PERIOD, 0.5*PERIOD]	: ORIGINAL VAR
+! i.e., X = PERIOD*(T-0.5)
 
 
 ! INITIALIZE WHEN FIRST CALL
      IF(T==0)THEN
 
 ! Try Interval Length 100
-        PERIOD=100.D0
+        PERIOD=50.D0
 
         A=0.D0
         M=-0.5D0
-	N=0.25D0
-	L=0.25D0
-	K=4
+	K=10
+	N=1.D0/K
+	LMAX = 2*(A-M-N)*(1+M)/((1+M+N)**2)
+	L=0.5*LMAX
 		
 	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
 
 ! Equilibrium points
-	R0 = a
+	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)
 	S0 = (1+M+N)/(1+A) - N/(R0*(1+A))
 	S1 = (1+M+N)/(1+A) - N/(R1*(1+A))
 
-! positive eigenvalue at M0
+! positive eigenvaalue at M0
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 = -(M+N)*a/(N*L)
+	mu03 = -(M+N)*aa/(N*L)
 
 ! negative eigenvalue at M1
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
 
-! Explicit solution tangent to X02 at M0
-	EPS0 = 1.D-4
-	P00 = 0.D0 + EPS0*1.D0*X02(1)
-	Q00 = 0.D0 + EPS0*1.D0*X02(2)
-	R00 = a + EPS0*1.D0*X02(3)
-	C1 = (1-Q00)/Q00
-
-! Explicit solution tangent to X12 at M1
-	XEND = PERIOD/2.D0
-	P11 = 0.D0
-	Q11 = 1.D0/( 1.D0 + C1*DEXP(-XEND) )
-	CALL RRRR(K,XEND,R11,PAR)
-	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
 
 ! Provide the eigenvectors with unit length
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
 	 X01(1)=1.D0
-	 X01(2)=b*R0
-	 X01(3)=-(L+b)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
+	 X01(2)=bb*R0
+	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
          DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 )
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
@@ -237,7 +257,7 @@
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
 	 X11(1)=1.D0
-	 X11(2)=(B-L)*R1/(1.D0+mu11)
+	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
          DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )
 	 X11(1)=X11(1)/DUMMY
@@ -252,6 +272,22 @@
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
+
+! provide constants
+	XMAX = 0.5D0*PERIOD
+	XMIN = -XMAX
+	P00 = 0.D0
+	Q00 = 0.D0 + 1.0D-4
+	C1 = (1.D0-Q00)/Q00
+	E0 = C1/(C1 + DEXP(XMAX))
+	F0 =  1/(C1 + DEXP(XMAX))
+	CALL RRRR(XMIN,R00,PAR)
+	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
+
+	P11 = 0.D0
+	Q11 = 1.D0/( 1.D0 + C1*DEXP(-(XMAX)) )
+	CALL RRRR(XMAX,R11,PAR)
+	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
 
 !           PAR(1) : A = alpha
 !           PAR(2) : M = m
@@ -287,13 +323,19 @@
 !           PAR(31): mu11
 !           PAR(32): mu12
 
+!	    PAR(33): K    My Convenient Constants From Here
+!	    PAR(34): E0
+!	    PAR(35): F0
+!	    PAR(36): C1
+!	    PAR(37): Q00
 
          PAR(1) = A
          PAR(2) = M
          PAR(3) = N
          PAR(4) = L
          PAR(5) = EPS0
-         PAR(6) = EPS1
+ 	 PAR(6) = EPS1
+
          PAR(7) = X01(1) 
          PAR(8) = X01(2)
          PAR(9) = X01(3)
@@ -327,37 +369,34 @@
          PAR(30)= mu03
          PAR(31)= mu11
          PAR(32)= mu12
+	 PAR(33)= K    
+	 PAR(34)= E0
+	 PAR(35)= F0
+	 PAR(36)= C1
+	 PAR(37)= Q00
+
+        !WRITE(*,*) X02(1), 0.0D0 + EPS0*PAR(23)*X02(2), R0+EPS0*PAR(23)*X02(3)
+        !WRITE(*,*) X12(1), 1.0D0 + EPS1*PAR(26)*X12(2), R1+EPS1*PAR(26)*X12(3)
+	
 
        ENDIF
 
 ! Retrieve PARAMETER VALUES
 
 	PERIOD=PAR(27)
-        A=PAR(1)
-        M=PAR(2)
-	N=PAR(3)
-	L=PAR(4)
-
-	EPS0=PAR(5)
-	X02(1)=PAR(10)
-	X02(2)=PAR(11)
-	X02(3)=PAR(12)
-	Q00 = 0.D0 + EPS0*1.D0*X02(2)
-	C1 = (1-Q00)/Q00
-
-	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	C1=PAR(36)
 
 ! Specify exact solution as starting point :
-	X=PERIOD*(T-0.5)
+	X=PERIOD*(T-0.5D0)
 	P = 0.D0
-	Q = 1.D0/( 1 + C1*DEXP(-X) )
-	CALL RRRR(K,X,R,PAR)
+	Q = 1.D0/( 1 + C1*DEXP(-(X)) )
+	CALL RRRR(X,R,PAR)
 
 	U(1)= P
 	U(2)= Q
 	U(3)= R
+
+	WRITE(*,*) X,P,Q,R
 	
 
       END SUBROUTINE STPNT
@@ -377,7 +416,7 @@
       INTEGER, PARAMETER :: NDM=3
       DOUBLE PRECISION MAT0(NDM,NDM),MAT1(NDM,NDM)
 
-      DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, a, b, R0, R1
+      DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, aa, bb, R0, R1
       DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12
       DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
 
@@ -390,10 +429,10 @@
 	EPS1=PAR(6)
 		
 	D=1.D0 + 2.D0*A - M - N
-	a=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	b=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
+	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
 
-	R0 = a
+	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)
 
 ! unit length coefficients
@@ -414,8 +453,8 @@
 ! Provide the eigenvectors with unit length
 !	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
 !	 X01(1)=1.D0
-!	 X01(2)=b*R0
-!	 X01(3)=-(L+b)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
+!	 X01(2)=bb*R0
+!	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 !         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 )
 !	 X01(1)=X01(1)/DUMMY
 !	 X01(2)=X01(2)/DUMMY
@@ -457,7 +496,7 @@
 !	MAT0(1,1) = 2.D0
 !	MAT0(1,2) = 0.D0
 !	MAT0(1,3) = 0.D0
-!	MAT0(2,1) = b*R0
+!	MAT0(2,1) = bb*R0
 !	MAT0(2,2) = 1.D0
 !	MAT0(2,3) = 0.D0
 !	MAT0(3,1) = (R0*L)*R0/N
@@ -468,7 +507,7 @@
 !	MAT1(1,1) = -(1.D0+M+N)/(A-M-N)
 !	MAT1(1,2) = 0.D0
 !	MAT1(1,3) = 0.D0
-!	MAT1(2,1) = (b-L)*R1
+!	MAT1(2,1) = (bb-L)*R1
 !	MAT1(2,2) = -1.D0
 !	MAT1(2,3) = 0.D0
 !	MAT1(3,1) = (R1*L)*R1/N
@@ -478,7 +517,7 @@
 ! positive eigenvalue at M0
 !	mu01 = 2.D0
 !	mu02 = 1.D0
-!	mu03 = -(M+N)*a/(N*L)
+!	mu03 = -(M+N)*aa/(N*L)
 !
 ! negative eigenvalue at M1
 !	mu11 = -(1.D0+M+N)/(A-M-N)
