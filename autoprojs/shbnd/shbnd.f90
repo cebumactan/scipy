@@ -66,6 +66,9 @@
 
       END SUBROUTINE FUNC
 
+
+
+
       SUBROUTINE FFFF(NDM,U,ICP,PAR,IJAC,F,DFDU)
 !     ---------- ----
 
@@ -84,7 +87,7 @@
 		
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
 
         P=U(1)
 	Q=U(2)
@@ -97,24 +100,19 @@
       END SUBROUTINE FFFF
 
 
-      SUBROUTINE FAC(K,VAL)
-!     ---------- ----
 
+      SUBROUTINE FAC(K,VAL)
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: K
       DOUBLE PRECISION, INTENT(OUT) :: VAL
       INTEGER j
-
         VAL=1.D0
 	DO j=1,K
 	    VAL=VAL*j
 	END DO
       END SUBROUTINE FAC
-      
 
       SUBROUTINE COMB(K,J,VAL)
-!     ---------- ----
-
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: K,J
       DOUBLE PRECISION, INTENT(OUT) :: VAL
@@ -125,10 +123,9 @@
 	VAL = VAL/ DUMMY
 	CALL FAC(K-J,DUMMY)
 	VAL = VAL/ DUMMY
-
       END SUBROUTINE COMB
 
-
+! EXPLICIT SOLUTION FOR r(x)
       SUBROUTINE RRRR(X,R,PAR)
 !     ---------- ----
 
@@ -178,6 +175,12 @@
       END SUBROUTINE RRRR
 
 
+
+! EXPLICIT SOLUTION
+! T runs in [0,1]			: SCALED VAR
+! X runs in [-0.5*PERIOD, 0.5*PERIOD]	: ORIGINAL VAR
+! i.e., X = PERIOD*(T-0.5)
+
       SUBROUTINE STPNT(NDIM,U,PAR,T)
 !     ---------- -----
 
@@ -190,20 +193,16 @@
       DOUBLE PRECISION PERIOD, X, EPS0, EPS1
       DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R
       DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, DUMMY
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
-      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), VEC(NDM) 
+      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2
       INTEGER K,j
-
-! T runs in [0,1]			: SCALED VAR
-! X runs in [-0.5*PERIOD, 0.5*PERIOD]	: ORIGINAL VAR
-! i.e., X = PERIOD*(T-0.5)
 
 
 ! INITIALIZE WHEN FIRST CALL
      IF(T==0)THEN
 
 ! Try Interval Length 100
-        PERIOD=50.D0
+        PERIOD=40.D0
 
         A=0.D0
         M=-0.5D0
@@ -273,7 +272,7 @@
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
 
-! provide constants
+
 	XMAX = 0.5D0*PERIOD
 	XMIN = -XMAX
 	P00 = 0.D0
@@ -281,13 +280,8 @@
 	C1 = (1.D0-Q00)/Q00
 	E0 = C1/(C1 + DEXP(XMAX))
 	F0 =  1/(C1 + DEXP(XMAX))
-	CALL RRRR(XMIN,R00,PAR)
-	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
-
 	P11 = 0.D0
 	Q11 = 1.D0/( 1.D0 + C1*DEXP(-(XMAX)) )
-	CALL RRRR(XMAX,R11,PAR)
-	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
 
 !           PAR(1) : A = alpha
 !           PAR(2) : M = m
@@ -333,8 +327,8 @@
          PAR(2) = M
          PAR(3) = N
          PAR(4) = L
-         PAR(5) = EPS0
- 	 PAR(6) = EPS1
+!        PAR(5) = EPS0
+! 	 PAR(6) = EPS1
 
          PAR(7) = X01(1) 
          PAR(8) = X01(2)
@@ -375,6 +369,36 @@
 	 PAR(36)= C1
 	 PAR(37)= Q00
 
+! provide constants
+
+	CALL RRRR(XMIN,R00,PAR)
+	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
+
+!	VEC(1) = P00-0.D0
+!	VEC(2) = Q00-0.D0
+!	VEC(3) = R00-R0
+!	CC0 = VEC(1)*X01(1) + VEC(2)*X01(2) + VEC(3)*X01(3)
+!	CC1 = VEC(1)*X02(1) + VEC(2)*X02(2) + VEC(3)*X02(3)
+!	CC2 = VEC(1)*X03(1) + VEC(2)*X03(2) + VEC(3)*X03(3)
+!	EPS0 = SQRT( (CC0)**2 + (CC1)**2 + (CC2)**2 )
+	PAR(5) = EPS0
+!	PAR(22) = CC0/EPS0
+!	PAR(23) = CC1/EPS0
+!	PAR(24) = CC2/EPS0
+
+	CALL RRRR(XMAX,R11,PAR)
+	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
+!	VEC(1) = 0.D0
+!	VEC(2) = Q11-0.D0
+!	VEC(3) = R11-R1
+!	CC0 = VEC(1)*X11(1) + VEC(2)*X11(2) + VEC(3)*X11(3)
+!	CC1 = VEC(1)*X12(1) + VEC(2)*X12(2) + VEC(3)*X12(3)
+!	EPS1 = SQRT( (CC0)**2 + (CC1)**2 )
+	PAR(6) = EPS1
+!	PAR(25) = CC0/EPS1
+!	PAR(26) = CC1/EPS1
+
+	WRITE(*,*) PAR(22), PAR(23), PAR(24), PAR(25), PAR(26)
         !WRITE(*,*) X02(1), 0.0D0 + EPS0*PAR(23)*X02(2), R0+EPS0*PAR(23)*X02(3)
         !WRITE(*,*) X12(1), 1.0D0 + EPS1*PAR(26)*X12(2), R1+EPS1*PAR(26)*X12(3)
 	
@@ -396,7 +420,7 @@
 	U(2)= Q
 	U(3)= R
 
-	WRITE(*,*) X,P,Q,R
+	!WRITE(*,*) X,P,Q,R
 	
 
       END SUBROUTINE STPNT
