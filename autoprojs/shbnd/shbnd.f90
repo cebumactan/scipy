@@ -9,39 +9,59 @@
 !           PAR(2) : M = m
 !           PAR(3) : N = n
 !           PAR(4) : L = lambda
-!           PAR(5) : EPS0
-!           PAR(6) : EPS1
-!           PAR(7) : X01
-!           PAR(8) : 
-!           PAR(9) : 
-!           PAR(10): X02
-!           PAR(11): 
-!           PAR(12): 
-!           PAR(13): X03
-!           PAR(14): 
-!           PAR(15): 
-!           PAR(16): X11
-!           PAR(17): 
-!           PAR(18): 
-!           PAR(19): X12
-!           PAR(20): 
-!           PAR(21): 
-!           PAR(22): c0 coefficient 
+!           PAR(5) : K integer = 1/N
+!           PAR(6) : C1 
+!           PAR(7) : EPS0
+!           PAR(8) : EPS1
+!           PAR(9) : c01
+!           PAR(10): c02
+!           PAR(11): c03
+!           PAR(12): c11
+!           PAR(13): c12
+!           PAR(14): c14
+!           PAR(15): PERIOD
+!           PAR(16): mu01
+!           PAR(17): mu02
+!           PAR(18): mu03
+!           PAR(19): mu11
+!           PAR(20): mu12
+!           PAR(21): mu14
+
+!           PAR(22): X01
 !           PAR(23): 
 !           PAR(24): 
-!           PAR(25): c1 coefficient 
-!           PAR(26): 
-!           PAR(27): PERIOD
-!           PAR(28): mu01
-!           PAR(29): mu02
-!           PAR(30): mu03
-!           PAR(31): mu11
-!           PAR(32): mu12
-!	    PAR(33): K    My Convenient Constants From Here
-!	    PAR(34): E0
-!	    PAR(35): F0
-!	    PAR(36): C1
-!	    PAR(37): Q00
+!           PAR(25): 
+
+!           PAR(26): X02
+!           PAR(27): 
+!           PAR(28): 
+!           PAR(29): 
+
+!           PAR(30): X03 
+!           PAR(31): 
+!           PAR(32): 
+!	    PAR(33): 
+
+!	    PAR(34): X11
+!	    PAR(35): 
+!	    PAR(36): 
+!	    PAR(37):
+ 
+!           PAR(38): X12
+!	    PAR(39): 
+!	    PAR(40): 
+!	    PAR(41):
+ 
+!	    PAR(42): X14
+!	    PAR(43): 
+!           PAR(44): 
+!	    PAR(45): 
+
+!	    PAR(46): Extra
+!	    PAR(47): 
+!	    PAR(48): 
+!	    PAR(49): 
+!	    PAR(50):
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
@@ -76,7 +96,7 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
 
-      DOUBLE PRECISION A, M, N, L, D, aa, bb, P, Q, R
+      DOUBLE PRECISION A, M, N, L, D, aa, bb, P, Q, R, S
 
         A=PAR(1)
         M=PAR(2)
@@ -95,7 +115,7 @@
         F(1)= P * ( (R-aa)/L + 2.D0 - L*P*R - Q  )
         F(2)= Q * (  1.D0 - L*P*R - Q  ) + bb*P*R
         F(3)= R * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q +   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )*A/L  ) / N
-	F(4)= S * ( (R-aa)*(A-M-N)/(L((1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L  )
+	F(4)= S * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L  )
 
       END SUBROUTINE FFFF
 
@@ -143,7 +163,7 @@
 	K=PAR(33)
 	C1=PAR(36)
 
-	PERIOD = PAR(27)
+	PERIOD = PAR(15)
 	XMAX = 0.5*PERIOD
 		
 		
@@ -191,8 +211,8 @@
 
       INTEGER, PARAMETER :: NDM=4
       DOUBLE PRECISION PERIOD, X, EPS0, EPS1
-      DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R
-      DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, DUMMY
+      DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R, S
+      DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, mu14, DUMMY
       DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), X14(NDM), VEC(NDM) 
       DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2, QA, QB, QC
       INTEGER K,j
@@ -229,7 +249,7 @@
 
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 = (  -QB + np.sqrt(QB**2-4*QA*QC)  )/(2*QA)
+	mu03 = (  -QB + SQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
 	QA = 1.D0
@@ -238,7 +258,7 @@
 
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
-	mu14 = (  -QB - np.sqrt(QB**2-4*QA*QC)  )/(2*QA)
+	mu14 = (  -QB - SQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! Provide the eigenvectors with unit length
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
@@ -257,7 +277,7 @@
 	 X02(1)=0.D0
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
-	 X02(4)=-( N*(1.D0/L+mu02) / R0       )/DUMMY
+	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
          DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
@@ -267,7 +287,7 @@
 	 X03(1)=0.D0
 	 X03(2)=0.D0
 	 X03(3)=1.D0
-	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + n*mu03/S0 )
+	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
          DUMMY = SQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
@@ -313,11 +333,11 @@
          PAR(2) = M
          PAR(3) = N
          PAR(4) = L
-	 PAR(5)= K    
+	 PAR(5) = K    
 	 PAR(6)= C1
 
-         PAR(7) = 1.0488740383E-08
- 	 PAR(8) = 7.0036896621D-05
+         PAR(7) = 1.0488740383E-03
+ 	 PAR(8) = 7.0036896621D-03
 
          PAR(9)= 9.8572084967D-01
          PAR(10)= 1.6838766735D-01
@@ -381,12 +401,12 @@
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 ! Local
-      INTEGER, PARAMETER :: NDM=3
+      INTEGER, PARAMETER :: NDM=4
       DOUBLE PRECISION MAT0(NDM,NDM),MAT1(NDM,NDM)
 
-      DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, aa, bb, R0, R1
-      DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM)
+      DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, aa, bb, R0, R1, S0, S1
+      DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12, mu14
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), X14(NDM), QA, QB, QC, DUMMY
 
         A=PAR(1)
         M=PAR(2)
@@ -400,8 +420,30 @@
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
 	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
 
+
+! Equilibrium points
 	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)
+	S0 = (1.D0+M+N)/(1.D0+A) - N/(R0*(1.D0+A))
+	S1 = (1.D0+M+N)/(1.D0+A) - N/(R1*(1.D0+A))
+
+! positive eigenvaalue at M0
+	QA = 1.D0
+	QB = -( (1.D0-S0)/L - N/(L*R0) )*R0/N + S0*R0/L
+	QC = -( S0*R0*R0/(L*N) )*( (1.D0-S0)/L - N/(L*R0) ) - (S0*R0/N)*((1.D0-S0)/L)*(A*R0/L)
+
+	mu01 = 2.D0
+	mu02 = 1.D0
+	mu03 = (  -QB + SQRT(QB**2-4*QA*QC)  )/(2*QA)
+
+! negative eigenvalue at M1
+	QA = 1.D0
+	QB = -( (1.D0-S1)/L - N/(L*R1) )*R1/N + S1*R1/L
+	QC = -( S1*R1*R1/(L*N) )*( (1.D0-S1)/L - N/(L*R1) ) - (S1*R1/N)*((1.D0-S1)/L)*(A*R1/L)
+
+	mu11 = -(1.D0+M+N)/(A-M-N)
+	mu12 = -1.D0
+	mu14 = (  -QB - SQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 
 ! Compute the eigenvectors with unit length by explicit formula provided by Min-Gi
@@ -409,76 +451,117 @@
 	 X01(1)=1.D0
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
-         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 )
+	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
+         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
+	 X01(4)=X01(4)/DUMMY
+
 
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu02/S0 ) - (N/R0)*( 1.D0/L + mu02 )*( R0/L + mu02/S0 )
 	 X02(1)=0.D0
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
-         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 )
+	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
+         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
+	 X02(4)=X02(4)/DUMMY
 
 	 X03(1)=0.D0
 	 X03(2)=0.D0
 	 X03(3)=1.D0
+	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
+         DUMMY = SQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
+	 X03(1)=X03(1)/DUMMY
+	 X03(2)=X03(2)/DUMMY
+	 X03(3)=X03(3)/DUMMY
+	 X03(4)=X03(4)/DUMMY
+
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
 	 X11(1)=1.D0
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
-         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )
+	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
+         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
+	 X11(4)=X11(4)/DUMMY
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu12/s1 ) - (N/R1)*( 1.D0/L + mu12 )*( R1/L + mu12/S1 )
 	 X12(1)=0.D0
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
-         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 )
+	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
+         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
+	 X12(4)=X12(4)/DUMMY
+
+	 X14(1)=0.D0
+	 X14(2)=0.D0
+	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
+	 X14(4)=1.D0
+         DUMMY = SQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
+	 X14(1)=X14(1)/DUMMY
+	 X14(2)=X14(2)/DUMMY
+	 X14(3)=X14(3)/DUMMY
+	 X14(4)=X14(4)/DUMMY
 
 
 ! unit length constraints of the coefficients
-	FB(1)= PAR(22)**2 + PAR(23)**2 + PAR(24)**2 -1
-	FB(2)= PAR(25)**2 + PAR(26)**2 -1
+	FB(1)= PAR(9 )**2 + PAR(10)**2 + PAR(11)**2 -1
+	FB(2)= PAR(12)**2 + PAR(13)**2 + PAR(14)**2 -1
 
 ! boundary values
-	FB(3)= U0(1) - ( 0.0D0 + EPS0*(  PAR(22)*PAR(7) + PAR(23)*PAR(10) + PAR(24)*PAR(13)   ) )
-	FB(4)= U0(2) - ( 0.0D0 + EPS0*(  PAR(22)*PAR(8) + PAR(23)*PAR(11) + PAR(24)*PAR(14)   ) )
-	FB(5)= U0(3) - ( R0    + EPS0*(  PAR(22)*PAR(9) + PAR(23)*PAR(12) + PAR(24)*PAR(15)   ) )
+	FB(3) = U0(1) - ( 0.0D0 + EPS0*(  PAR( 9)*PAR(22) + PAR(10)*PAR(26) + PAR(11)*PAR(30)   ) )
+	FB(4) = U0(2) - ( 0.0D0 + EPS0*(  PAR( 9)*PAR(23) + PAR(10)*PAR(27) + PAR(11)*PAR(31)   ) )
+	FB(5) = U0(3) - ( R0    + EPS0*(  PAR( 9)*PAR(24) + PAR(10)*PAR(28) + PAR(11)*PAR(32)   ) )
+	FB(6) = U0(4) - ( S0    + EPS0*(  PAR( 9)*PAR(25) + PAR(10)*PAR(29) + PAR(11)*PAR(33)   ) )
 
-	FB(6)= U1(1) - ( 0.0D0 + EPS1*(  PAR(25)*PAR(16) + PAR(26)*PAR(19)   ) )
-	FB(7)= U1(2) - ( 1.0D0 + EPS1*(  PAR(25)*PAR(17) + PAR(26)*PAR(20)   ) )
-	FB(8)= U1(3) - ( R1    + EPS1*(  PAR(25)*PAR(18) + PAR(26)*PAR(21)   ) )
+
+	FB(7) = U1(1) - ( 0.0D0 + EPS1*(  PAR(12)*PAR(34) + PAR(13)*PAR(38) + PAR(14)*PAR(42)   ) )
+	FB(8) = U1(2) - ( 1.0D0 + EPS1*(  PAR(12)*PAR(35) + PAR(13)*PAR(39) + PAR(14)*PAR(43)   ) )
+	FB(9) = U1(3) - ( R1    + EPS1*(  PAR(12)*PAR(36) + PAR(13)*PAR(40) + PAR(14)*PAR(44)   ) )
+	FB(10)= U1(4) - ( S1    + EPS1*(  PAR(12)*PAR(37) + PAR(13)*PAR(41) + PAR(14)*PAR(45)   ) )
 
 ! use explicit formulas for eigenvectors and force this by constraints
-	FB(9) =PAR(7)-X01(1)
-	FB(10)=PAR(8)-X01(2)
-	FB(11)=PAR(9)-X01(3)
+	FB(11)=PAR(22)-X01(1)
+	FB(12)=PAR(23)-X01(2)
+	FB(13)=PAR(24)-X01(3)
+	FB(14)=PAR(25)-X01(4)
 
-	FB(12)=PAR(10)-X02(1)
-	FB(13)=PAR(11)-X02(2)
-	FB(14)=PAR(12)-X02(3)
+	FB(15)=PAR(26)-X02(1)
+	FB(16)=PAR(27)-X02(2)
+	FB(17)=PAR(28)-X02(3)
+	FB(18)=PAR(29)-X02(4)
 
-	FB(15)=PAR(13)-X03(1)
-	FB(16)=PAR(14)-X03(2)
-	FB(17)=PAR(15)-X03(3)
+	FB(19)=PAR(30)-X03(1)
+	FB(20)=PAR(31)-X03(2)
+	FB(21)=PAR(32)-X03(3)
+	FB(22)=PAR(33)-X03(4)
 
-	FB(18)=PAR(16)-X11(1)
-	FB(19)=PAR(17)-X11(2)
-	FB(20)=PAR(18)-X11(3)
+	FB(23)=PAR(34)-X11(1)
+	FB(24)=PAR(35)-X11(2)
+	FB(25)=PAR(36)-X11(3)
+	FB(26)=PAR(37)-X11(4)
 
-	FB(21)=PAR(19)-X12(1)
-	FB(22)=PAR(20)-X12(2)
-	FB(23)=PAR(21)-X12(3)
+	FB(27)=PAR(38)-X12(1)
+	FB(28)=PAR(39)-X12(2)
+	FB(29)=PAR(40)-X12(3)
+	FB(30)=PAR(41)-X12(4)
+
+	FB(31)=PAR(42)-X14(1)
+	FB(32)=PAR(43)-X14(2)
+	FB(33)=PAR(44)-X14(3)
+	FB(34)=PAR(45)-X14(4)
+
+
 
 ! use explicit formulas for eigenvalues
 !	FB(24)=PAR(28)-mu01
