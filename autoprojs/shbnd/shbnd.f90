@@ -92,10 +92,12 @@
         P=U(1)
 	Q=U(2)
 	R=U(3)
+	S=U(4)
 
         F(1)= P * ( (R-aa)/L + 2.D0 - L*P*R - Q  )
         F(2)= Q * (  1.D0 - L*P*R - Q  ) + bb*P*R
-        F(3)= R * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q  ) / N
+        F(3)= R * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q +   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )*A/L  ) / N
+	F(4)= S * ( (R-aa)*(A-M-N)/(L((1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L
 
       END SUBROUTINE FFFF
 
@@ -449,8 +451,6 @@
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
-
-
 
 
 ! unit length constraints of the coefficients
