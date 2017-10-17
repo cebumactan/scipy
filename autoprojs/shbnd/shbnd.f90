@@ -57,17 +57,15 @@
 
       DOUBLE PRECISION PERIOD, DUMMY(1)
 
-	CALL FFFF(3,U,ICP,PAR,0,F,DUMMY)
+	CALL FFFF(4,U,ICP,PAR,0,F,DUMMY)
 
 	PERIOD=PAR(27)
 	F(1)=PERIOD*F(1)
 	F(2)=PERIOD*F(2)
 	F(3)=PERIOD*F(3)
+	F(4)=PERIOD*F(4)
 
       END SUBROUTINE FUNC
-
-
-
 
       SUBROUTINE FFFF(NDM,U,ICP,PAR,IJAC,F,DFDU)
 !     ---------- ----
@@ -97,7 +95,7 @@
         F(1)= P * ( (R-aa)/L + 2.D0 - L*P*R - Q  )
         F(2)= Q * (  1.D0 - L*P*R - Q  ) + bb*P*R
         F(3)= R * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q +   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )*A/L  ) / N
-	F(4)= S * ( (R-aa)*(A-M-N)/(L((1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L
+	F(4)= S * ( (R-aa)*(A-M-N)/(L((1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L  )
 
       END SUBROUTINE FFFF
 
@@ -191,12 +189,12 @@
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
 
-      INTEGER, PARAMETER :: NDM=3
+      INTEGER, PARAMETER :: NDM=4
       DOUBLE PRECISION PERIOD, X, EPS0, EPS1
       DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R
       DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, DUMMY
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), VEC(NDM) 
-      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), X14(NDM), VEC(NDM) 
+      DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2, QA, QB, QC
       INTEGER K,j
 
 
@@ -211,6 +209,8 @@
 	N=1.D0/K
 	LMAX = 2*(A-M-N)*(1+M)/((1+M+N)**2)
 	L=0.5*LMAX
+
+	C1 = 1.D0
 		
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
@@ -219,158 +219,151 @@
 ! Equilibrium points
 	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)
-	S0 = (1+M+N)/(1+A) - N/(R0*(1+A))
-	S1 = (1+M+N)/(1+A) - N/(R1*(1+A))
+	S0 = (1.D0+M+N)/(1.D0+A) - N/(R0*(1.D0+A))
+	S1 = (1.D0+M+N)/(1.D0+A) - N/(R1*(1.D0+A))
 
 ! positive eigenvaalue at M0
+	QA = 1.D0
+	QB = -( (1.D0-S0)/L - N/(L*R0) )*R0/N + S0*R0/L
+	QC = -( S0*R0*R0/(L*N) )*( (1.D0-S0)/L - N/(L*R0) ) - (S0*R0/N)*((1.D0-S0)/L)*(A*R0/L)
+
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 = -(M+N)*aa/(N*L)
+	mu03 = (  -QB + np.sqrt(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
+	QA = 1.D0
+	QB = -( (1.D0-S1)/L - N/(L*R1) )*R1/N + S1*R1/L
+	QC = -( S1*R1*R1/(L*N) )*( (1.D0-S1)/L - N/(L*R1) ) - (S1*R1/N)*((1.D0-S1)/L)*(A*R1/L)
+
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
-
+	mu14 = (  -QB - np.sqrt(QB**2-4*QA*QC)  )/(2*QA)
 
 ! Provide the eigenvectors with unit length
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
 	 X01(1)=1.D0
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
-         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 )
+	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
+         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
+	 X01(4)=X01(4)/DUMMY
 
 
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu02/S0 ) - (N/R0)*( 1.D0/L + mu02 )*( R0/L + mu02/S0 )
 	 X02(1)=0.D0
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
-         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 )
+	 X02(4)=-( N*(1.D0/L+mu02) / R0       )/DUMMY
+         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
+	 X02(4)=X02(4)/DUMMY
 
 	 X03(1)=0.D0
 	 X03(2)=0.D0
 	 X03(3)=1.D0
+	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + n*mu03/S0 )
+         DUMMY = SQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
+	 X03(1)=X03(1)/DUMMY
+	 X03(2)=X03(2)/DUMMY
+	 X03(3)=X03(3)/DUMMY
+	 X03(4)=X03(4)/DUMMY
+
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
 	 X11(1)=1.D0
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
-         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )
+	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
+         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
+	 X11(4)=X11(4)/DUMMY
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu12/s1 ) - (N/R1)*( 1.D0/L + mu12 )*( R1/L + mu12/S1 )
 	 X12(1)=0.D0
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
-         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 )
+	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
+         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
+	 X12(4)=X12(4)/DUMMY
+
+	 X14(1)=0.D0
+	 X14(2)=0.D0
+	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
+	 X14(4)=1.D0
+         DUMMY = SQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
+	 X14(1)=X14(1)/DUMMY
+	 X14(2)=X14(2)/DUMMY
+	 X14(3)=X14(3)/DUMMY
+	 X14(4)=X14(4)/DUMMY
 
 
-	XMAX = 0.5D0*PERIOD
-	XMIN = -XMAX
-
-	C1 = 1.D0
-	P00 = 0.D0
-	Q00 = 1.D0/( 1.D0 + C1*DEXP(-(XMIN)) )
-	P11 = 0.D0
-	Q11 = 1.D0/( 1.D0 + C1*DEXP(-(XMAX)) )
-	E0 = C1
-	F0 = 1.D0
-
-!	WRITE(*,*) mu01, mu02, mu03, mu11, mu12
-
-!           PAR(1) : A = alpha
-!           PAR(2) : M = m
-!           PAR(3) : N = n
-!           PAR(4) : L = lambda
-!           PAR(5) : EPS0
-!           PAR(6) : EPS1
-!           PAR(7) : X01
-!           PAR(8) : 
-!           PAR(9) : 
-!           PAR(10): X02
-!           PAR(11): 
-!           PAR(12): 
-!           PAR(13): X03
-!           PAR(14): 
-!           PAR(15): 
-!           PAR(16): X11
-!           PAR(17): 
-!           PAR(18): 
-!           PAR(19): X12
-!           PAR(20): 
-!           PAR(21): 
-!           PAR(22): c0 coefficient 
-!           PAR(23): 
-!           PAR(24): 
-!           PAR(25): c1 coefficient 
-!           PAR(26): 
-
-!           PAR(27): PERIOD
-!           PAR(28): mu01
-!           PAR(29): mu02
-!           PAR(30): mu03
-!           PAR(31): mu11
-!           PAR(32): mu12
-
-!	    PAR(33): K    My Convenient Constants From Here
-!	    PAR(34): E0
-!	    PAR(35): F0
-!	    PAR(36): C1
-!	    PAR(37): Q00
 
          PAR(1) = A
          PAR(2) = M
          PAR(3) = N
          PAR(4) = L
-         PAR(5) = 1.0488740383E-08
- 	 PAR(6) = 7.0036896621D-05
+	 PAR(5)= K    
+	 PAR(6)= C1
 
-         PAR(7) = X01(1) 
-         PAR(8) = X01(2)
-         PAR(9) = X01(3)
+         PAR(7) = 1.0488740383E-08
+ 	 PAR(8) = 7.0036896621D-05
 
-         PAR(10)= X02(1)
-         PAR(11)= X02(2)
-         PAR(12)= X02(3)
+         PAR(9)= 9.8572084967D-01
+         PAR(10)= 1.6838766735D-01
+         PAR(11)= 1.5512729904D-06 
 
-         PAR(13)= X03(1)
-         PAR(14)= X03(2)
-         PAR(15)= X03(3)
+         PAR(12)= 5.4228550939D-03
+         PAR(13)= -9.9998529621D-01
+	 PAR(14)= 0.D0
 
-         PAR(16)= X11(1)
-         PAR(17)= X11(2)
-         PAR(18)= X11(3)
+         PAR(15)= PERIOD
+         PAR(16)= mu01
+         PAR(17)= mu02
+         PAR(18)= mu03
+         PAR(19)= mu11
+         PAR(20)= mu12
+	 PAR(21)= mu14
 
-         PAR(19)= X12(1)
-         PAR(20)= X12(2)
-         PAR(21)= X12(3)
+         PAR(22)= X01(1) 
+         PAR(23)= X01(2)
+         PAR(24)= X01(3)
+         PAR(25)= X01(4)
 
-         PAR(22)= 9.8572084967D-01
-         PAR(23)= 1.6838766735D-01
-         PAR(24)= 1.5512729904D-06 
+         PAR(26)= X02(1)
+         PAR(27)= X02(2)
+         PAR(28)= X02(3)
+         PAR(29)= X02(4)
 
-         PAR(25)= 5.4228550939D-03
-         PAR(26)= -9.9998529621D-01
+         PAR(30)= X03(1)
+         PAR(31)= X03(2)
+         PAR(32)= X03(3)
+         PAR(33)= X03(4)
 
-         PAR(27)= PERIOD
-         PAR(28)= mu01
-         PAR(29)= mu02
-         PAR(30)= mu03
-         PAR(31)= mu11
-         PAR(32)= mu12
-	 PAR(33)= K    
+         PAR(34)= X11(1)
+         PAR(35)= X11(2)
+         PAR(36)= X11(3)
+         PAR(37)= X11(4)
 
-	 PAR(36)= C1
+         PAR(38)= X12(1)
+         PAR(39)= X12(2)
+         PAR(40)= X12(3)
+         PAR(41)= X12(4)
+
+         PAR(42)= X12(1)
+         PAR(43)= X12(2)
+         PAR(44)= X12(3)
+         PAR(45)= X12(4)
 	
 
       END SUBROUTINE STPNT
