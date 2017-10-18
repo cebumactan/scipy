@@ -79,7 +79,7 @@
 
 	CALL FFFF(4,U,ICP,PAR,0,F,DUMMY)
 
-	PERIOD=PAR(27)
+	PERIOD=PAR(15)
 	F(1)=PERIOD*F(1)
 	F(2)=PERIOD*F(2)
 	F(3)=PERIOD*F(3)
@@ -118,82 +118,6 @@
 	F(4)= S * ( (R-aa)*(A-M-N)/(L*(1.D0+A)) + L*P*R + Q -   ( R*( S-(1.D0+M+N)/(1.D0+A) ) + N/(1.D0+A) )  /L  )
 
       END SUBROUTINE FFFF
-
-
-
-      SUBROUTINE FAC(K,VAL)
-      IMPLICIT NONE
-      INTEGER, INTENT(IN) :: K
-      DOUBLE PRECISION, INTENT(OUT) :: VAL
-      INTEGER j
-        VAL=1.D0
-	DO j=1,K
-	    VAL=VAL*j
-	END DO
-      END SUBROUTINE FAC
-
-      SUBROUTINE COMB(K,J,VAL)
-      IMPLICIT NONE
-      INTEGER, INTENT(IN) :: K,J
-      DOUBLE PRECISION, INTENT(OUT) :: VAL
-      DOUBLE PRECISION DUMMY
-	CALL FAC(K,DUMMY)
-	VAL = DUMMY
-	CALL FAC(J,DUMMY)
-	VAL = VAL/ DUMMY
-	CALL FAC(K-J,DUMMY)
-	VAL = VAL/ DUMMY
-      END SUBROUTINE COMB
-
-! EXPLICIT SOLUTION FOR r(x)
-      SUBROUTINE RRRR(X,R,PAR)
-!     ---------- ----
-
-      IMPLICIT NONE
-      DOUBLE PRECISION, INTENT(IN) :: X, PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: R
-      DOUBLE PRECISION A, M, N, L, D, aa, bb, PERIOD
-      DOUBLE PRECISION R0, R1, Q00, R00, EPS0, NUMERATOR, DENOM, Z, DUMMY,E0, F0, C1, XMAX
-      INTEGER K,j
-
-        A=PAR(1)
-        M=PAR(2)
-	N=PAR(3)
-	L=PAR(4)
-	K=PAR(33)
-	C1=PAR(36)
-
-	PERIOD = PAR(15)
-	XMAX = 0.5*PERIOD
-		
-		
-	D=1.D0 + 2.D0*A - M - N
-	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
-
-! Equilibrium points
-	R0 = aa
-	R1 = R0 - (1.D0+A)*L/(A-M-N)
-
-! Some Constants
-	Z = -aa*(M+N)/L
-	E0 = C1/(C1 + DEXP(XMAX))
-	F0 = 1.0D0/(C1 + DEXP(XMAX))
-
-	NUMERATOR = aa*( (E0+F0*DEXP(X))**K )
-
-	DENOM = 0.D0
-	DO j = 0, K
-		CALL COMB(K,j,DUMMY)
-		DENOM = DENOM +  ( DUMMY* ( E0**(K-j) ) * ( F0**j ) * DEXP(j*X) ) / (-K*Z+j)
-	END DO
-	DENOM = DENOM*(-K*Z)
-
-
-	R = NUMERATOR / DENOM
-
-      END SUBROUTINE RRRR
-
 
 
 ! EXPLICIT SOLUTION
@@ -249,7 +173,7 @@
 
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 = (  -QB + SQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
 	QA = 1.D0
@@ -258,7 +182,7 @@
 
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
-	mu14 = (  -QB - SQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu14 = (  -QB - DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! Provide the eigenvectors with unit length
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
@@ -266,7 +190,7 @@
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
-         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
+         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
@@ -278,7 +202,7 @@
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
 	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
-         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
+         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
@@ -288,7 +212,7 @@
 	 X03(2)=0.D0
 	 X03(3)=1.D0
 	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
-         DUMMY = SQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
+         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
 	 X03(3)=X03(3)/DUMMY
@@ -300,7 +224,7 @@
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
 	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
-         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
+         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
@@ -311,7 +235,7 @@
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
 	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
-         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
+         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
@@ -321,7 +245,7 @@
 	 X14(2)=0.D0
 	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
 	 X14(4)=1.D0
-         DUMMY = SQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
+         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
 	 X14(1)=X14(1)/DUMMY
 	 X14(2)=X14(2)/DUMMY
 	 X14(3)=X14(3)/DUMMY
@@ -336,15 +260,15 @@
 	 PAR(5) = K    
 	 PAR(6)= C1
 
-         PAR(7) = 1.0488740383E-08
- 	 PAR(8) = 7.0036896621D-05
+         PAR(7) = 1.0341042419E-08
+ 	 PAR(8) = 7.0036896621E-05
 
-         PAR(9)= 9.8572084967D-01
-         PAR(10)= 1.6838766735D-01
-         PAR(11)= 1.5512729904D-06 
+         PAR(9)= 9.9999999691E-01
+         PAR(10)= 7.8646089829E-05
+         PAR(11)= 1.7146849293E-06 
 
-         PAR(12)= 5.4228550939D-03
-         PAR(13)= -9.9998529621D-01
+         PAR(12)= 5.4229633391E-03
+         PAR(13)= -9.9998529563E-01
 	 PAR(14)= 0.D0
 
          PAR(15)= PERIOD
@@ -380,10 +304,10 @@
          PAR(40)= X12(3)
          PAR(41)= X12(4)
 
-         PAR(42)= X12(1)
-         PAR(43)= X12(2)
-         PAR(44)= X12(3)
-         PAR(45)= X12(4)
+         PAR(42)= X14(1)
+         PAR(43)= X14(2)
+         PAR(44)= X14(3)
+         PAR(45)= X14(4)
 	
 
       END SUBROUTINE STPNT
@@ -434,7 +358,7 @@
 
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 = (  -QB + SQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
 	QA = 1.D0
@@ -443,7 +367,7 @@
 
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
-	mu14 = (  -QB - SQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu14 = (  -QB - DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 
 ! Compute the eigenvectors with unit length by explicit formula provided by Min-Gi
@@ -452,7 +376,7 @@
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
-         DUMMY = SQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
+         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2 )
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
@@ -464,7 +388,7 @@
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
 	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
-         DUMMY = SQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
+         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
@@ -474,7 +398,7 @@
 	 X03(2)=0.D0
 	 X03(3)=1.D0
 	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
-         DUMMY = SQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
+         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
 	 X03(3)=X03(3)/DUMMY
@@ -486,7 +410,7 @@
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
 	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
-         DUMMY = SQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
+         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
@@ -497,7 +421,7 @@
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
 	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
-         DUMMY = SQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
+         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
@@ -507,7 +431,7 @@
 	 X14(2)=0.D0
 	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
 	 X14(4)=1.D0
-         DUMMY = SQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
+         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
 	 X14(1)=X14(1)/DUMMY
 	 X14(2)=X14(2)/DUMMY
 	 X14(3)=X14(3)/DUMMY
@@ -515,53 +439,20 @@
 
 
 ! unit length constraints of the coefficients
-	FB(1)= PAR(9 )**2 + PAR(10)**2 + PAR(11)**2 -1
-	FB(2)= PAR(12)**2 + PAR(13)**2 + PAR(14)**2 -1
+	FB(1)= DSQRT(PAR(9)**2 + PAR(10)**2 + PAR(11)**2) -1.0d0
+	FB(2)= DSQRT(PAR(12)**2 + PAR(13)**2 + PAR(14)**2) -1.d0
 
 ! boundary values
-	FB(3) = U0(1) - ( 0.0D0 + EPS0*(  PAR( 9)*PAR(22) + PAR(10)*PAR(26) + PAR(11)*PAR(30)   ) )
-	FB(4) = U0(2) - ( 0.0D0 + EPS0*(  PAR( 9)*PAR(23) + PAR(10)*PAR(27) + PAR(11)*PAR(31)   ) )
-	FB(5) = U0(3) - ( R0    + EPS0*(  PAR( 9)*PAR(24) + PAR(10)*PAR(28) + PAR(11)*PAR(32)   ) )
-	FB(6) = U0(4) - ( S0    + EPS0*(  PAR( 9)*PAR(25) + PAR(10)*PAR(29) + PAR(11)*PAR(33)   ) )
+	FB(3) = U0(1) - ( 0.0D0 + EPS0*(  PAR( 9)*X01(1) + PAR(10)*X02(1) + PAR(11)*X03(1)   ) )
+	FB(4) = U0(2) - ( 0.0D0 + EPS0*(  PAR( 9)*X01(2) + PAR(10)*X02(2) + PAR(11)*X03(2)   ) )
+	FB(5) = U0(3) - ( R0    + EPS0*(  PAR( 9)*X01(3) + PAR(10)*X02(3) + PAR(11)*X03(3)   ) )
+	FB(6) = U0(4) - ( S0    + EPS0*(  PAR( 9)*X01(4) + PAR(10)*X02(4) + PAR(11)*X03(4)   ) )
 
 
-	FB(7) = U1(1) - ( 0.0D0 + EPS1*(  PAR(12)*PAR(34) + PAR(13)*PAR(38) + PAR(14)*PAR(42)   ) )
-	FB(8) = U1(2) - ( 1.0D0 + EPS1*(  PAR(12)*PAR(35) + PAR(13)*PAR(39) + PAR(14)*PAR(43)   ) )
-	FB(9) = U1(3) - ( R1    + EPS1*(  PAR(12)*PAR(36) + PAR(13)*PAR(40) + PAR(14)*PAR(44)   ) )
-	FB(10)= U1(4) - ( S1    + EPS1*(  PAR(12)*PAR(37) + PAR(13)*PAR(41) + PAR(14)*PAR(45)   ) )
-
-! use explicit formulas for eigenvectors and force this by constraints
-	FB(11)=PAR(22)-X01(1)
-	FB(12)=PAR(23)-X01(2)
-	FB(13)=PAR(24)-X01(3)
-	FB(14)=PAR(25)-X01(4)
-
-	FB(15)=PAR(26)-X02(1)
-	FB(16)=PAR(27)-X02(2)
-	FB(17)=PAR(28)-X02(3)
-	FB(18)=PAR(29)-X02(4)
-
-	FB(19)=PAR(30)-X03(1)
-	FB(20)=PAR(31)-X03(2)
-	FB(21)=PAR(32)-X03(3)
-	FB(22)=PAR(33)-X03(4)
-
-	FB(23)=PAR(34)-X11(1)
-	FB(24)=PAR(35)-X11(2)
-	FB(25)=PAR(36)-X11(3)
-	FB(26)=PAR(37)-X11(4)
-
-	FB(27)=PAR(38)-X12(1)
-	FB(28)=PAR(39)-X12(2)
-	FB(29)=PAR(40)-X12(3)
-	FB(30)=PAR(41)-X12(4)
-
-	FB(31)=PAR(42)-X14(1)
-	FB(32)=PAR(43)-X14(2)
-	FB(33)=PAR(44)-X14(3)
-	FB(34)=PAR(45)-X14(4)
-
-
+	FB(7) = U1(1) - ( 0.0D0 + EPS1*(  PAR(12)*X11(1) + PAR(13)*X12(1) + PAR(14)*X14(1)   ) )
+	FB(8) = U1(2) - ( 1.0D0 + EPS1*(  PAR(12)*X11(2) + PAR(13)*X12(2) + PAR(14)*X14(2)   ) )
+	FB(9) = U1(3) - ( R1    + EPS1*(  PAR(12)*X11(3) + PAR(13)*X12(3) + PAR(14)*X14(3)   ) )
+	FB(10)= U1(4) - ( S1    + EPS1*(  PAR(12)*X11(4) + PAR(13)*X12(4) + PAR(14)*X14(4)   ) )
 
 ! use explicit formulas for eigenvalues
 !	FB(24)=PAR(28)-mu01
