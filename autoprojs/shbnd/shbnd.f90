@@ -527,16 +527,16 @@
 
 	mu11 = -(1.D0+M+N)/(A-M-N)
 	mu12 = -1.D0
+	mu13 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 	mu14 = (  -QB - DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
-
-! Compute the eigenvectors with unit length by explicit formula provided by Min-Gi
+! Provide the eigenvectors with unit length
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu01/S0 ) - (N/R0)*( 1.D0/L + mu01 )*( R0/L + mu01/S0 )
 	 X01(1)=1.D0
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
-         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2  )
+         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2)
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
@@ -548,7 +548,7 @@
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
 	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
-         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 )
+         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
@@ -558,7 +558,7 @@
 	 X03(2)=0.D0
 	 X03(3)=1.D0
 	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
-         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 )
+         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
 	 X03(3)=X03(3)/DUMMY
@@ -586,6 +586,18 @@
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
 	 X12(4)=X12(4)/DUMMY
+
+
+	 X13(1)=0.D0
+	 X13(2)=0.D0
+	 X13(3)=1.D0
+	 X13(4)=N* ((1.D0-S1)/L) / ( N*R1/L + N*mu13/S1)
+         DUMMY = DSQRT( X13(1)**2 + X13(2)**2 + X13(3)**2 )!+ X13(4)**2)
+	 X13(1)=X13(1)/DUMMY
+	 X13(2)=X13(2)/DUMMY
+	 X13(3)=X13(3)/DUMMY
+	 X13(4)=X13(4)/DUMMY
+
 
 	 X14(1)=0.D0
 	 X14(2)=0.D0
