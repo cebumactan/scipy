@@ -210,8 +210,8 @@
       INTEGER, PARAMETER :: NDM=4
       DOUBLE PRECISION PERIOD, X, EPS0, EPS1
       DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R, S
-      DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu11, mu12, mu13, mu14, DUMMY
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), X13(NDM), X14(NDM), VEC(NDM) 
+      DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu04, mu11, mu12, mu13, mu14, DUMMY
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X04(NDM), X11(NDM), X12(NDM), X13(NDM), X14(NDM), VEC(NDM) 
       DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2, QA, QB, QC
       INTEGER K,j
 
@@ -248,8 +248,8 @@
 
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 =-(M+N)*aa/(N*L)
-!	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu04 = (  -QB - DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
 	QA = 1.D0
@@ -267,7 +267,7 @@
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
-         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2)
+         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2)
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
@@ -279,7 +279,7 @@
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
 	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
-         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2)
+         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
@@ -289,19 +289,18 @@
 	 X03(2)=0.D0
 	 X03(3)=1.D0
 	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
-         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2)
+         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
 	 X03(3)=X03(3)/DUMMY
 	 X03(4)=X03(4)/DUMMY
-
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
 	 X11(1)=1.D0
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
 	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
-         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )! + X11(4)**2)
+         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2  + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
@@ -312,33 +311,42 @@
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
 	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
-         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 )!+ X12(4)**2)
+         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
 	 X12(4)=X12(4)/DUMMY
 
 
+	 X14(1)=0.D0
+	 X14(2)=0.D0
+	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
+	 X14(4)=1.D0
+         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
+	 X14(1)=X14(1)/DUMMY
+	 X14(2)=X14(2)/DUMMY
+	 X14(3)=X14(3)/DUMMY
+	 X14(4)=X14(4)/DUMMY
+
 	 X13(1)=0.D0
 	 X13(2)=0.D0
 	 X13(3)=1.D0
 	 X13(4)=N* ((1.D0-S1)/L) / ( N*R1/L + N*mu13/S1)
-         DUMMY = DSQRT( X13(1)**2 + X13(2)**2 + X13(3)**2 )!+ X13(4)**2)
+         DUMMY = DSQRT( X13(1)**2 + X13(2)**2 + X13(3)**2 + X13(4)**2)
 	 X13(1)=X13(1)/DUMMY
 	 X13(2)=X13(2)/DUMMY
 	 X13(3)=X13(3)/DUMMY
 	 X13(4)=X13(4)/DUMMY
 
-
-	 X14(1)=0.D0
-	 X14(2)=0.D0
-	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
-	 X14(4)=1.D0
-         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 )!+ X14(4)**2)
-	 X14(1)=X14(1)/DUMMY
-	 X14(2)=X14(2)/DUMMY
-	 X14(3)=X14(3)/DUMMY
-	 X14(4)=X14(4)/DUMMY
+	 X04(1)=0.D0
+	 X04(2)=0.D0
+	 X04(3)= ( R0/L + mu04/S0 ) / ( (1.D0-S0)/L )
+	 X04(4)=1.D0
+         DUMMY = DSQRT( X04(1)**2 + X04(2)**2 + X04(3)**2 + X04(4)**2)
+	 X04(1)=X04(1)/DUMMY
+	 X04(2)=X04(2)/DUMMY
+	 X04(3)=X04(3)/DUMMY
+	 X04(4)=X04(4)/DUMMY
 
 
 	XMAX = 0.5D0*PERIOD
@@ -412,6 +420,11 @@
 	 PAR(47)= X13(2)
 	 PAR(48)= X13(3)
 	 PAR(49)= X13(4)
+
+	 PAR(50)= X04(1)
+	 PAR(51)= X04(2)
+	 PAR(52)= X04(3)
+	 PAR(53)= X04(4)
 	
 
 ! provide constants
@@ -488,8 +501,8 @@
       DOUBLE PRECISION MAT0(NDM,NDM),MAT1(NDM,NDM)
 
       DOUBLE PRECISION EPS0, EPS1, A, M, N, L, D, aa, bb, R0, R1, S0, S1
-      DOUBLE PRECISION mu01, mu02, mu03, mu11, mu12, mu14
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X11(NDM), X12(NDM), X14(NDM), QA, QB, QC, DUMMY
+      DOUBLE PRECISION mu01, mu02, mu03, mu04, mu11, mu12, mu13, mu14
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X04(NDM), X11(NDM), X12(NDM), X13(NDM), X14(NDM), QA, QB, QC, DUMMY
 
         A=PAR(1)
         M=PAR(2)
@@ -517,8 +530,8 @@
 
 	mu01 = 2.D0
 	mu02 = 1.D0
-	mu03 =-(M+N)*aa/(N*L)
-!	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu03 = (  -QB + DSQRT(QB**2-4*QA*QC)  )/(2*QA)
+	mu04 = (  -QB - DSQRT(QB**2-4*QA*QC)  )/(2*QA)
 
 ! negative eigenvalue at M1
 	QA = 1.D0
@@ -536,7 +549,7 @@
 	 X01(2)=bb*R0
 	 X01(3)=-(L+bb)*R0* ( (1.D0+A)*R0/L + mu01/S0  ) / DUMMY
 	 X01(4)=-(L+bb)*R0* ( N*(1.D0/L + mu01) / R0   ) / DUMMY
-         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2)
+         DUMMY = DSQRT( X01(1)**2 + X01(2)**2 + X01(3)**2 + X01(4)**2)
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
@@ -548,7 +561,7 @@
 	 X02(2)=1.D0
 	 X02(3)=-( (1.D0+A)*R0/L + mu02/S0 )/DUMMY
 	 X02(4)=-( N*( 1.D0/L + mu02 )/ R0 )/DUMMY
-         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2)
+         DUMMY = DSQRT( X02(1)**2 + X02(2)**2 + X02(3)**2 + X02(4)**2)
 	 X02(1)=X02(1)/DUMMY
 	 X02(2)=X02(2)/DUMMY
 	 X02(3)=X02(3)/DUMMY
@@ -558,19 +571,18 @@
 	 X03(2)=0.D0
 	 X03(3)=1.D0
 	 X03(4)=N*( (1.D0-S0)/L  ) / ( N*R0/L + N*mu03/S0 )
-         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2)
+         DUMMY = DSQRT( X03(1)**2 + X03(2)**2 + X03(3)**2 + X03(4)**2)
 	 X03(1)=X03(1)/DUMMY
 	 X03(2)=X03(2)/DUMMY
 	 X03(3)=X03(3)/DUMMY
 	 X03(4)=X03(4)/DUMMY
-
 
 	 DUMMY = ( (1.D0-S1)/L ) * ( (1.D0+A)*R1/L + mu11/s1 ) - (N/R1)*( 1.D0/L + mu11 )*( R1/L + mu11/S1 )
 	 X11(1)=1.D0
 	 X11(2)=(bb-L)*R1/(1.D0+mu11)
 	 X11(3)=-( L*R1 + X11(2) ) * ( (1.D0+A)*R1/L + mu11/S1 ) / DUMMY
 	 X11(4)=-( L*R1 + X11(2) ) * ( N*( 1.D0/L + mu11)/R1   ) / DUMMY
-         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2 )! + X11(4)**2)
+         DUMMY = DSQRT( X11(1)**2 + X11(2)**2 + X11(3)**2  + X11(4)**2)
 	 X11(1)=X11(1)/DUMMY
 	 X11(2)=X11(2)/DUMMY
 	 X11(3)=X11(3)/DUMMY
@@ -581,38 +593,47 @@
 	 X12(2)=1.D0
 	 X12(3)=- ( (1.D0+A)*R1/L + mu12/S1 ) / DUMMY
 	 X12(4)=- ( N*( 1.D0/L + mu12 )/R1  ) /DUMMY
-         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 )!+ X12(4)**2)
+         DUMMY = DSQRT( X12(1)**2 + X12(2)**2 + X12(3)**2 + X12(4)**2)
 	 X12(1)=X12(1)/DUMMY
 	 X12(2)=X12(2)/DUMMY
 	 X12(3)=X12(3)/DUMMY
 	 X12(4)=X12(4)/DUMMY
 
 
-	 X13(1)=0.D0
-	 X13(2)=0.D0
-	 X13(3)=1.D0
-	 X13(4)=N* ((1.D0-S1)/L) / ( N*R1/L + N*mu13/S1)
-         DUMMY = DSQRT( X13(1)**2 + X13(2)**2 + X13(3)**2 )!+ X13(4)**2)
-	 X13(1)=X13(1)/DUMMY
-	 X13(2)=X13(2)/DUMMY
-	 X13(3)=X13(3)/DUMMY
-	 X13(4)=X13(4)/DUMMY
-
-
 	 X14(1)=0.D0
 	 X14(2)=0.D0
 	 X14(3)= ( R1/L + mu14/S1 ) / ( (1.D0-S1)/L )
 	 X14(4)=1.D0
-         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 )!+ X14(4)**2)
+         DUMMY = DSQRT( X14(1)**2 + X14(2)**2 + X14(3)**2 + X14(4)**2)
 	 X14(1)=X14(1)/DUMMY
 	 X14(2)=X14(2)/DUMMY
 	 X14(3)=X14(3)/DUMMY
 	 X14(4)=X14(4)/DUMMY
 
+	 X13(1)=0.D0
+	 X13(2)=0.D0
+	 X13(3)=1.D0
+	 X13(4)=N* ((1.D0-S1)/L) / ( N*R1/L + N*mu13/S1)
+         DUMMY = DSQRT( X13(1)**2 + X13(2)**2 + X13(3)**2 + X13(4)**2)
+	 X13(1)=X13(1)/DUMMY
+	 X13(2)=X13(2)/DUMMY
+	 X13(3)=X13(3)/DUMMY
+	 X13(4)=X13(4)/DUMMY
+
+	 X04(1)=0.D0
+	 X04(2)=0.D0
+	 X04(3)= ( R0/L + mu04/S0 ) / ( (1.D0-S0)/L )
+	 X04(4)=1.D0
+         DUMMY = DSQRT( X04(1)**2 + X04(2)**2 + X04(3)**2 + X04(4)**2)
+	 X04(1)=X04(1)/DUMMY
+	 X04(2)=X04(2)/DUMMY
+	 X04(3)=X04(3)/DUMMY
+	 X04(4)=X04(4)/DUMMY
+
 
 ! unit length constraints of the coefficients
-	FB(1)= DSQRT(PAR(9)**2 + PAR(10)**2 + PAR(11)**2) -1.0d0
-	FB(2)= DSQRT(PAR(12)**2 + PAR(13)**2) -1.D0 ! + PAR(14)**2) -1.d0
+	FB(1)= (PAR(9)**2 + PAR(10)**2 + PAR(11)**2) -1.0d0
+	FB(2)= (PAR(12)**2 + PAR(13)**2) -1.D0 ! + PAR(14)**2) -1.d0
 
 ! boundary values
 	FB(3) = U0(1) - ( 0.0D0 + EPS0*(  PAR( 9)*X01(1) + PAR(10)*X02(1) + PAR(11)*X03(1)   ) )
