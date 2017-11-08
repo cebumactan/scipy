@@ -1,0 +1,47 @@
+#NDIM : dimension of the dynamical system
+#NBC  : number of boundary conditions
+#NINT : number of integral conditions
+#NPAR : max number of dimensions of parameter space
+#JAC  : JAC=1 if Jacobian is supplied by me.
+#ICP  : Indices of the free parameters to continue
+#IRS  : 0 if start from user defined starting point, i if start from exsiting solution labeled by i
+#IPS  : problem type, 4 is the boundary value problem.
+#ILP  : 0 if runner does not detect folds. (What are folds?)
+#ISP  : 0 if runner does not detect Hopf bifurcation (What is Hopf bifurcation?)
+#RL0  : lower bound of principal continuation parameter (The first ICP index)
+#RL1  : upper bound of principal continuation parameter (The first ICP index)
+#UZR  : The parameter value at which output is generated.
+
+dat='starting_solution_scaled'
+# runner type
+IPS =   4, IRS =   0, ILP =   0, ISP =   0, ISW = 1, IPLT= 0
+
+# I'll not provide the Jacobian
+JAC= 0
+
+NDIM=   4, NBC= 10, NINT=0, NPAR= 53, THL =  {}, THU =  {}
+
+unames   ={1:"P", 2:"Q", 3:"R", 4:"S"}
+parnames ={1:"ALPHA", 2:"M", 3:"N", 4:"LAMBDA", 5:"1/N", 6:"C1", 7:"EPS0", 8:"EPS1", 9:"c01", 10:"c02", 11:"c03", 12:"c11", 13:"c12", 14:"c14", 15:"TIMESPAN", 16:"MU01", 17:"MU02", 18:"MU03", 19:"MU11", 20:"MU12", 21:"MU13", 22:"X01(1)", 23:"X01(2)", 24:"X01(3)", 25:"X01(4)", 26:"X02(1)", 27:"X02(2)", 28:"X02(3)", 29:"X02(4)", 30:"X03(1)", 31:"X03(2)", 32:"X03(3)", 33:"X03(4)", 34:"X11(1)", 35:"X11(2)", 36:"X11(3)", 37:"X11(4)", 38:"X12(1)", 39:"X12(2)", 40:"X12(3)", 41:"X12(4)", 42:"X14(1)", 43:"X14(2)", 44:"X14(3)", 45:"X14(4)"}
+
+RL0 = 0.0, RL1 = 10.0
+
+# Continuation parameter index
+#ICP =  [9, 10, 11, 12, 13, 7, 8, 22,23,24,25, 26,27,28,29, 30,31,32,33, 34,35,36,37, 38,39,40,41, 42,43,44,45 ]
+ICP = [1,2,4,10,11,13,14,7,8]
+#ICP = [9,10,11,12,13,14,7,8]
+
+#UZR =  {1: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]}
+#UZR =  {1: [-1e-7 -2e-7]}
+#UZSTOP = {1: [0.99]}
+
+
+# These concern on the mode or runner and discretization aspects.
+NTST= 199, NCOL=   4, IAD =   3
+NMX=  1000, NPR=  1, MXBF=   8, IID =   2, ITMX= 8, ITNW= 7, NWTN= 3
+EPSL= 1e-06, EPSU = 1e-06, EPSS = 1.e-3
+DS  = 0.01, DSMIN= 0.001, DSMAX=  0.05, IADS=   1
+
+
+#####ICP=30, NBC=34, NDIM=4
+#####ICP=30, NBC=10, NDIM=4
