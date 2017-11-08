@@ -86,6 +86,14 @@ def myr(t):
         DENOM1 = DENOM1 + sp.misc.comb(K,j)*(E0**(K-j))*(F0**j)*(np.exp(j*t)) / (-K*W+j)
 
     DENOM1 = (-K*W) * DENOM1
+    
+#    for j in range(0,K+1):
+#        DENOM2 = DENOM2 + comb(K,j)*(E0**(K-j))*(F0**j)*(np.exp(j*TMAX)) / (-K*W+j)
+#
+#    DENOM2 = ( 1 + (K*W*RM/aa)*DENOM2 ) * np.exp(-K*W*(t-M))
+#
+#    R = NUMERATOR / (DENOM1 + 0*DENOM2)        
+    
     R = NUMERATOR / DENOM1
     return R
 
