@@ -49,7 +49,7 @@ def F(s,params):
     t3=r*(s - (1.0+m+n)/(1.0+alf))/lam
     t4=n/(lam*(1.0+alf))
     
-    return s*(t1+t2+q-t3-t4);
+    return s*(t1+t2+q-t3-t4)*20.0;
 
 # Copy sign of b to a (assuming a > 0).
 def sign(a,b):                  
@@ -172,21 +172,56 @@ def rkf45(f,y,a,h,da, params):
 #Read the (p,q,r) data file the 1st line contains the values of the parameters : 
 # alpha, m, n, lambda, a, b 
 # first read the parameters
+#params=np.zeros(8)
+#fp = open('myshbndPQR.dat')
+#line = fp.readline(); line = fp.readline();  prm=line.split();
+#print(line)
+#alf=params[3]=float(prm[0])
+#m=params[4]=float(prm[1])
+#n=params[5]=float(prm[2])
+#lam=params[6]=float(prm[3])
+#aa=params[7]=float(prm[4])
+#bb=float(prm[5])
+
 params=np.zeros(8)
-fp = open('pqrdata.txt')
-line = fp.readline(); line = fp.readline();  prm=line.split();
-print(line)
-alf=params[3]=float(prm[0])
-m=params[4]=float(prm[1])
-n=params[5]=float(prm[2])
-lam=params[6]=float(prm[3])
-aa=params[7]=float(prm[4])
-bb=float(prm[5])
-        
+mypar = np.load('my3par.npy') 
+alf=params[3]=float(mypar[0])
+m=params[4]=float(mypar[1])
+n=params[5]=float(mypar[2])
+lam=params[6]=float(mypar[3])
+
+myeps0 = mypar[6]
+
+X01 = np.zeros(4)
+X02 = np.zeros(4)
+X03 = np.zeros(4)
+X04 = np.zeros(4)
+X11 = np.zeros(4)
+X12 = np.zeros(4)
+X14 = np.zeros(4)
+X13 = np.zeros(4)
+
+X01 = mypar[21:25]
+X02 = mypar[25:29]
+X03 = mypar[29:33]
+X11 = mypar[33:37]
+X12 = mypar[37:41]
+X14 = mypar[41:45]
+
+X13 = mypar[45:49]
+X04 = mypar[49:53]
+
+D = 1.0+2*alf-m-n
+a0,a1 = (2+2*alf-n)   / D   , (2+2*alf)       / D 
+b0,b1 = (1+m)       / D   , (1+m+n)       / D 
+
+aa = params[7]=a0 + a1*lam
+bb = b0 + b1*lam
 
 #print(alpha,m,n,lam,aa,bb)
 # now read the t,p,q,r data
-TPQR=np.loadtxt('pqrdata.txt', skiprows=2);
+#TPQR=np.loadtxt('myshbndPQR.dat', skiprows=2);
+TPQR=np.loadtxt('myshbndPQR.dat');
 N=len(TPQR[:,0]);
 T=np.zeros(N); P=np.zeros(N); Q=np.zeros(N); R=np.zeros(N); S=np.zeros(N); 
 T=TPQR[:,0]
@@ -202,6 +237,14 @@ nstep = 0
 DD=1.0+2.0*alf-m-n
 r0=(2.0+2.0*alf-n)/DD + (2.0+2.0*alf)*lam/DD
 S[0]=(1.0+m+n)/(1.0+alf) - n/((1.0+alf)*r0);
+
+#myc01= 9.8572084967e-01
+#myc02= 1.6838766735e-01
+#myc03= 1.5512729904e-06 
+#myeps0 = 1.0488740383e-08
+
+S[0]=(1.0+m+n)/(1.0+alf) - n/((1.0+alf)*r0) + myeps0*mypar[8]*X01[3] + myeps0*mypar[9]*X02[3] + myeps0*mypar[10]*X03[3]
+
 while (t < Tfinal ):
     dt = T[nstep+1] - T[nstep]
     ts = T[nstep]
@@ -218,8 +261,17 @@ while (t < Tfinal ):
     nstep = nstep + 1
     t = T[nstep]
     S[nstep] = tmp
+
+#myt = T/20.0 + 0.5  
+
+MAT = np.zeros((4,4))
+MAT = np.transpose([X11,X12,X13,X14])
+myf = np.transpose([P[-1],Q[-1]-1.0,R[-1]-0.7619047619047623,S[-1]-0.46875])/mypar[7]
+myc = np.linalg.solve(MAT,myf)
     
-    
+
+  
+np.savetxt('myshbnd.dat', np.transpose([T, P, Q , R, S]), fmt='%23.15E')
     
     
 #fig, ax = plt.subplots()
