@@ -31,7 +31,7 @@ def mysave(hetero):
     np.savetxt('hetero.dat', np.transpose([timespan*(hetero['t']-0.5), hetero['P'],hetero['Q'],hetero['R'],hetero['S']]),fmt='%23.15E')#,header=mystr)    
     np.savetxt('hetero_scaled.dat', np.transpose([hetero['t'], hetero['P'],hetero['Q'],hetero['R'],hetero['S']]), fmt='%23.15E')#,header=mystr)
     
-    #np.save('heteroPAR.npy',hetero.PAR)
+    #np.save('heteropar.npy',hetero.PAR)
 
 def changesign(data):
     for i in range(1,1001):

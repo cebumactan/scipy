@@ -350,9 +350,9 @@
       IMPLICIT NONE
 
       INTEGER, INTENT(IN) :: NDIM, ICP(*), NBC, IJAC
-      DOUBLE PRECISION, INTENT(IN) :: PAR(*), U0(NDIM), U1(NDIM)
+      DOUBLE PRECISION, INTENT(IN) :: U0(NDIM), U1(NDIM)
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
-      DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), DBC(NBC,*)
 ! Local
       INTEGER, PARAMETER :: NDM=4
       DOUBLE PRECISION MAT0(NDM,NDM),MAT1(NDM,NDM)
@@ -486,6 +486,48 @@
 	 X04(2)=X04(2)/DUMMY
 	 X04(3)=X04(3)/DUMMY
 	 X04(4)=X04(4)/DUMMY
+
+         PAR(16)= mu01
+         PAR(17)= mu02
+         PAR(18)= mu03
+         PAR(19)= mu11
+         PAR(20)= mu12
+	 PAR(21)= mu14
+
+         PAR(22)= X01(1) 
+         PAR(23)= X01(2)
+         PAR(24)= X01(3)
+         PAR(25)= X01(4)
+
+         PAR(26)= X02(1)
+         PAR(27)= X02(2)
+         PAR(28)= X02(3)
+         PAR(29)= X02(4)
+
+         PAR(30)= X03(1)
+         PAR(31)= X03(2)
+         PAR(32)= X03(3)
+         PAR(33)= X03(4)
+
+         PAR(34)= X11(1)
+         PAR(35)= X11(2)
+         PAR(36)= X11(3)
+         PAR(37)= X11(4)
+
+         PAR(38)= X12(1)
+         PAR(39)= X12(2)
+         PAR(40)= X12(3)
+         PAR(41)= X12(4)
+
+         PAR(42)= X14(1)
+         PAR(43)= X14(2)
+         PAR(44)= X14(3)
+         PAR(45)= X14(4)
+
+	 PAR(46)= X13(1)
+	 PAR(47)= X13(2)
+	 PAR(48)= X13(3)
+	 PAR(49)= X13(4)
 
 
 

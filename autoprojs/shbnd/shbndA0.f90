@@ -158,7 +158,7 @@
 ! Some Constants
 	Z = -aa*(M+N)/L
 	E0 = C1/(C1 + DEXP(XMAX))
-	F0 =  1/(C1 + DEXP(XMAX))
+	F0 = 1.0D0/(C1 + DEXP(XMAX))
 
 	NUMERATOR = aa*( (E0+F0*DEXP(X))**K )
 
@@ -201,8 +201,8 @@
 ! INITIALIZE WHEN FIRST CALL
      IF(T==0)THEN
 
-! Try Interval Length 100
-        PERIOD=40.D0
+! Try Interval Length 20
+        PERIOD=20.D0
 
         A=0.D0
         M=-0.5D0
@@ -213,7 +213,7 @@
 		
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
 
 ! Equilibrium points
 	R0 = aa
@@ -240,6 +240,8 @@
 	 X01(1)=X01(1)/DUMMY
 	 X01(2)=X01(2)/DUMMY
 	 X01(3)=X01(3)/DUMMY
+
+	 WRITE(*,*) X01(1), X01(2), X01(3)
 
 	 DUMMY = ( (1.D0-S0)/L ) * ( (1.D0+A)*R0/L + mu02/S0 ) - (N/R0)*( 1.D0/L + mu02 )*( R0/L + mu02/S0 )
 	 X02(1)=0.D0
@@ -275,15 +277,20 @@
 
 	XMAX = 0.5D0*PERIOD
 	XMIN = -XMAX
+!	P00 = 0.D0
+!	Q00 = 0.D0 + 1.0D-4
+!	C1 = (1.D0-Q00)/Q00
+!	E0 = C1/(C1 + DEXP(XMAX))
+!	F0 =  1/(C1 + DEXP(XMAX))
+	C1 = 1.D0
 	P00 = 0.D0
-	Q00 = 0.D0 + 1.0D-4
-	C1 = (1.D0-Q00)/Q00
-	E0 = C1/(C1 + DEXP(XMAX))
-	F0 =  1/(C1 + DEXP(XMAX))
+	Q00 = 1.D0/( 1.D0 + C1*DEXP(-(XMIN)) )
 	P11 = 0.D0
 	Q11 = 1.D0/( 1.D0 + C1*DEXP(-(XMAX)) )
+	E0 = C1
+	F0 = 1.D0
 
-	WRITE(*,*) mu01, mu02, mu03, mu11, mu12
+!	WRITE(*,*) mu01, mu02, mu03, mu11, mu12
 
 !           PAR(1) : A = alpha
 !           PAR(2) : M = m
@@ -352,12 +359,12 @@
          PAR(20)= X12(2)
          PAR(21)= X12(3)
 
-         PAR(22)= 0.D0
-         PAR(23)= 1.D0
-         PAR(24)= 0.D0
+!         PAR(22)= 0.D0
+!         PAR(23)= 1.D0
+!         PAR(24)= 0.D0
 
-         PAR(25)= 0.D0
-         PAR(26)= -1.D0
+!         PAR(25)= 0.D0
+!         PAR(26)= -1.D0
 
          PAR(27)= PERIOD
          PAR(28)= mu01
@@ -366,20 +373,56 @@
          PAR(31)= mu11
          PAR(32)= mu12
 	 PAR(33)= K    
-	 PAR(34)= E0
-	 PAR(35)= F0
+
 	 PAR(36)= C1
-	 PAR(37)= Q00
+
 
 ! provide constants
 
 	CALL RRRR(XMIN,R00,PAR)
-	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
+!	EPS0 = SQRT( (P00-0.D0)**2 + (Q00-0.D0)**2 + (R00-R0)**2 )
+!	PAR(5) = EPS0
+
+	VEC(1) = P00 - 0.D0
+	VEC(2) = Q00 - 0.D0
+	VEC(3) = R00 - R0
+
+	DUMMY = X02(2)*X03(3)-X02(3)*X03(2)
+	CC0 = 0.D0
+	CC1 = ( X03(3)*VEC(2) - X03(2)*VEC(3) ) / DUMMY
+	CC2 = (-X02(3)*VEC(2) + X02(2)*VEC(3) ) / DUMMY
+	EPS0 = SQRT( (CC0)**2 + (CC1)**2 + (CC2)**2 )
+
 	PAR(5) = EPS0
+        PAR(22)= -1.D-1
+        PAR(23)= -CC1 / EPS0
+        PAR(24)= -CC2 / EPS0
+
+!	WRITE(*,*) VEC(1), EPS0*( CC0*X01(1)+CC1*X02(1)+CC2*X03(1) )
+!	WRITE(*,*) VEC(2), EPS0*( CC0*X01(2)+CC1*X02(2)+CC2*X03(2) )
+!	WRITE(*,*) VEC(3), EPS0*( CC0*X01(3)+CC1*X02(3)+CC2*X03(3) )
 
 	CALL RRRR(XMAX,R11,PAR)
-	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
+!	EPS1 = SQRT( (P11-0.D0)**2 + (Q11-1.D0)**2 + (R11-R1)**2 )
+!	PAR(6) = EPS1
+
+	VEC(1) = P11 - 0.D0
+	VEC(2) = Q11 - 1.D0
+	VEC(3) = R11 - R1
+
+	DUMMY = X11(2)*X12(3)-X11(3)*X12(2)
+	CC0 = 0.D0
+	CC1 = ( X12(3)*VEC(2) - X12(2)*VEC(3) ) / DUMMY
+	CC2 = (-X11(3)*VEC(2) + X11(2)*VEC(3) ) / DUMMY
+	EPS1 = SQRT( (CC0)**2 + (CC1)**2 + (CC2)**2 )
+
 	PAR(6) = EPS1
+        PAR(25)= CC1 / EPS1
+        PAR(26)= CC2 / EPS1
+
+!	WRITE(*,*) VEC(1), EPS1*( CC1*X11(1)+CC2*X12(1) )
+!	WRITE(*,*) VEC(2), EPS1*( CC1*X11(2)+CC2*X12(2) )
+!	WRITE(*,*) VEC(3), EPS1*( CC1*X11(3)+CC2*X12(3) )
 
        ENDIF
 
@@ -433,7 +476,7 @@
 		
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
-	bb=(1.D0+m)    /D + (1.D0+M+N)*L/D
+	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
 
 	R0 = aa
 	R1 = R0 - (1.D0+A)*L/(A-M-N)

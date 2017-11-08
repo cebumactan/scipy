@@ -5,9 +5,9 @@ close all;
 
 %% Parameters
 n = 0.3;
-A = 1.4;
+A = 1.2;
 MaxL = 2*(A-n) / ((1+n)^2);
-L = MaxL*0.3;
+L = MaxL*0.5;
 
 %% Constants
 m = 0;
@@ -58,7 +58,8 @@ figure(10); view(90,20);  hold on;
 figure(2);  view(99,58); hold on;
 flag = 0;
 
-for w = [32.2157:0.00001:32.2159]
+% for w = [32.2157:0.00001:32.2159] % 
+for w = [2.5085:0.00001:2.5087]
     % initial position of ther orbit near M1
     Z0    = [p1;q1;r1] + 0.00001*(50*W2 + w*W1);
 

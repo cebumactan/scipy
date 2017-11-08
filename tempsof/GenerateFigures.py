@@ -4,6 +4,7 @@ import matplotlib.pyplot as myplot
 import scipy as sp
 import scipy.io
 import numpy as np
+from scipy.integrate import odeint
 
 
 myplot.close('all')
@@ -66,11 +67,36 @@ tildetheta =       ( (p**(1+n)   )* (r**(n*(1+n))    ))**(1/D)
 tildesigma =       ( (p**(-(A-n)))* (r**(n*(1+A))    ))**(1/D)
 tildeu     =       ( (p**(1+A)   )* (r**(n*(1+A)+1)  ))**(1/D)
 
+# solve for tildeg
+myeta = eta[::-1]
+idx = np.size(myeta)-1
+mytg_infty = 0
+
+def myodefunc( mytg, myeta, a0, myL, mytu):
+    global idx
+    dtgdeta = (mytu[idx] - a0*mytg)/myL
+    print(idx)
+    idx-=1
+    return dtgdeta
+tildeg = odeint(myodefunc, mytg_infty, myeta, args=(a0, L, tildeu))
+
 # Bar Capital variables : stress, strain, strain rates, vertical velocity, functions of \xi
 VBar     = ( (xi)**(-b1   ) ) * (tildev);
 ThetaBar = ( (xi)**(-c1   ) ) * (tildetheta);
 SigmaBar = ( (xi)**(-d1 ) ) * (tildesigma);
 UBar     = ( (xi)**(-b1-1   ) ) * (tildeu);
+
+
+## solve for Gbar
+#myUBar = UBar
+#def myodefunc( myG, myxi, a, myL, myU ):
+#    print(myxi)
+#    dGdxi = (myU[myxi] - a*myG)/(myL*myxi)
+#    return dGdxi
+#myG_infty = 1
+#myxi=xi
+#GBar = odeint(myodefunc, myG_infty, myxi, args=(a, L, myUBar))
+
 
 # Odd extension
 xi       = np.concatenate((-xi[::-1]      , xi      ))
@@ -91,16 +117,16 @@ fvp = fv.add_subplot(111)
 fs = myplot.figure()
 fsp = fs.add_subplot(111)
 
-#fthp.plot(xi,ThetaBar)
-#fup.plot(xi,UBar)
-#fvp.plot(xi,VBar)
-#fsp.plot(xi,SigmaBar)
+fthp.plot(xi,ThetaBar)
+fup.plot(xi,UBar)
+fvp.plot(xi,VBar)
+fsp.plot(xi,SigmaBar)
 
 
 poly=['k','b','r','g','m']
 mrk=['o','x','^','d','s','*']
 
-tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+tv = [ 0, 1, 3, 7, 12]; js=-1; it=0  
 for t in tv:         # for temperature
     
     fac   = (t+1)**L;
@@ -108,20 +134,21 @@ for t in tv:         # for temperature
     x     = xi / fac;
 
     #R = 25;
-    R = 40
+    R = 50
     fthp.plot(x,theta,'b', linewidth=2);#, markersize=8, marker=mrk[it], markevery=200, label='t='+str(tv[it]));  
-    fthp.axis([-R,R,1.0/80,5]);
+    fthp.axis([-R,R,1.0/80,10]);
     fthp.set_ylabel(r"${\theta}(x,t)$",fontsize=30)
     fthp.set_xlabel('$x$',fontsize=25)
     fthp.tick_params(labelsize=15)
     fthp.set_yscale('log')
+    print(tv[it])
     fthp.annotate('t='+str(tv[it]),xy=(0,max(theta)),xycoords='data',xytext=(js*120,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
     js*=-1; it+=1;
-    figname=FIGDIR+'temperature_log.pdf'
-    fth.savefig(figname, format='pdf')
+    figname=FIGDIR+'temperature_log.eps'
+    fth.savefig(figname, format='eps')
 
-
-tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0   
+tv = [ 0, 1, 3, 7, 12]; js=-1; it=0 
+#tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0   
 for t in tv:     # for strain rate
     fac   = (t+1)**L;
     u = (t+1)**(b+L) * UBar
@@ -130,8 +157,8 @@ for t in tv:     # for strain rate
 
     R = 10
     #fup.plot(x,u,'b');
-    fup.plot(x,u,'b',linewidth=2)#, markersize=8, marker=mrk[it],markevery=200, label='t='+str(tv[it]));
-    fup.axis([-R,R,1e-2,1.1],fontsize=30);
+    fup.plot(x,u,linewidth=2, markersize=8, marker=mrk[it],markevery=200, label='t='+str(tv[it]));
+    fup.axis([-R,R,1e-2,3.5],fontsize=30);
     fup.set_ylabel('$u(x,t)$',fontsize=30)
     fup.set_xlabel('$x$',fontsize=25)
     fup.tick_params(labelsize=15)
@@ -139,10 +166,11 @@ for t in tv:     # for strain rate
     fup.legend(loc=2)
     fup.annotate('t='+str(tv[it]),xy=(0,max(u)),xycoords='data',xytext=(js*120,25),fontsize=15, textcoords='offset points',arrowprops=dict(arrowstyle="->"))
     js*=-1; it+=1;    
-    figname=FIGDIR+'strain_rate_log.pdf'
-    fu.savefig(figname, format='pdf')
-    
-tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+    figname=FIGDIR+'strain_rate_log.eps'
+    fu.savefig(figname, format='eps')
+
+tv = [ 0, 1, 3, 7, 12]; js=-1; it=0     
+#tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
 for t in tv:       # for v and sigma 
     fac   = (t+1)**L;
     v     = (t+1)**b * VBar
@@ -151,18 +179,18 @@ for t in tv:       # for v and sigma
     R = 30;
     fvp.plot(x,v,linewidth=2, markersize=8, marker=mrk[it], markevery=200, label='t='+str(tv[it]));  
     #fvp.plot(x,v,'b')
-    fvp.axis([-R,R,-1.9,1.9]);
+    fvp.axis([-R,R,-2.2,2.2]);
     fvp.set_ylabel('$v(x,t)$',fontsize=30)
     fvp.set_xlabel('$x$',fontsize=25)
     fvp.tick_params(labelsize=15)
     fvp.legend(loc=2)
     it+=1
     #fvp.annotate('t='+str(tv[it]),xy=(js*x[2300+js*it*150],js*v[2300+js*it*150]),xycoords='data',xytext=(js*100,-45),fontsize=15,textcoords='offset points',arrowprops=dict(arrowstyle="->"))
-    figname=FIGDIR+'velocity.pdf'
-    fv.savefig(figname, format='pdf')   
+    figname=FIGDIR+'velocity.eps'
+    fv.savefig(figname, format='eps')   
     
-
-tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
+tv = [ 0, 1, 3, 7, 12]; js=-1; it=0 
+#tv = [ 0, 2, 4, 6, 8, 10]; js=-1; it=0  
 for t in tv:       # for v and sigma 
     fac   = (t+1)**L;
     sigma = (t+1)**d * SigmaBar
@@ -171,7 +199,7 @@ for t in tv:       # for v and sigma
     R = 60;
 
     fsp.plot(x,sigma,'b',linewidth=2);  
-    fsp.axis([-R,R,2e-1,40]); 
+    fsp.axis([-R,R,1e-1,20]); 
     fsp.set_ylabel("${\sigma}(x,t)$", fontsize=30)
     fsp.set_xlabel('$x$',fontsize=25)
     fsp.tick_params(labelsize=15)
@@ -179,8 +207,8 @@ for t in tv:       # for v and sigma
     yl=10; yr=40; ly=(yr-yl)/2.; my=(yr+yl)/2.;
     fsp.annotate('t='+str(tv[it]),xy=(0,min(sigma)),xycoords='data',xytext=(js*120,ly*js+my),fontsize=15,textcoords='offset points',arrowprops=dict(arrowstyle="->"))
     js*=-1; it+=1;
-    figname=FIGDIR+'stress_log.pdf'
-    fs.savefig(figname, format='pdf')
+    figname=FIGDIR+'stress_log.eps'
+    fs.savefig(figname, format='eps')
 #myplot.show()
 
 
