@@ -9,7 +9,7 @@ import numpy as np
 
 def mysave(hetero):
     print(hetero)
-    timespan = hetero['PERIOD']
+    timespan = hetero['TIMESPAN']
     A = hetero['ALPHA']
     M = hetero['M']
     N = hetero['N']
