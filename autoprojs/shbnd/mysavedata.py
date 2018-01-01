@@ -9,7 +9,7 @@ import numpy as np
 
 def mysave(hetero):
     print(hetero)
-    timespan = hetero['PERIOD']
+    timespan = hetero['TIMESPAN']
     A = hetero['ALPHA']
     M = hetero['M']
     N = hetero['N']
@@ -28,7 +28,7 @@ def mysave(hetero):
     
     mystr = "ALPHA %23.15e  M %23.15e  N %23.15E LAMBDA %23.15e a %23.15e b %23.15e" %(A,M,N,L,aa,bb)
     
-    np.savetxt('hetero.dat', np.transpose([timespan*(hetero['t']-0.5), hetero['P'],hetero['Q'],hetero['R'],hetero['S']]),fmt='%23.15E')#,header=mystr)    
+    np.savetxt('hetero.dat', np.transpose([timespan*(hetero['t']-0.5), hetero['P'],hetero['Q'],hetero['R'],hetero['S']]),fmt='%23.15E',header=mystr)    
     np.savetxt('hetero_scaled.dat', np.transpose([hetero['t'], hetero['P'],hetero['Q'],hetero['R'],hetero['S']]), fmt='%23.15E')#,header=mystr)
     
     #np.save('heteropar.npy',hetero.PAR)
