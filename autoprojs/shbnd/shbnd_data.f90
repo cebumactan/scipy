@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
-!   shbnd :    Heteroclinic orbits : A saddle-saddle connection 
+!   shbnd :    Heteroclinic orbits : A saddle-saddle connection
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 ! Parameter assignment:
@@ -10,7 +10,7 @@
 !           PAR(3) : N = n
 !           PAR(4) : L = lambda
 !           PAR(5) : K integer = 1/N
-!           PAR(6) : C1 
+!           PAR(6) : C1
 !           PAR(7) : EPS0
 !           PAR(8) : EPS1
 !           PAR(9) : c01
@@ -28,39 +28,39 @@
 !           PAR(21): mu14
 
 !           PAR(22): X01
-!           PAR(23): 
-!           PAR(24): 
-!           PAR(25): 
+!           PAR(23):
+!           PAR(24):
+!           PAR(25):
 
 !           PAR(26): X02
-!           PAR(27): 
-!           PAR(28): 
-!           PAR(29): 
+!           PAR(27):
+!           PAR(28):
+!           PAR(29):
 
-!           PAR(30): X03 
-!           PAR(31): 
-!           PAR(32): 
-!	    PAR(33): 
+!           PAR(30): X03
+!           PAR(31):
+!           PAR(32):
+!	    PAR(33):
 
 !	    PAR(34): X11
-!	    PAR(35): 
-!	    PAR(36): 
+!	    PAR(35):
+!	    PAR(36):
 !	    PAR(37):
- 
+
 !           PAR(38): X12
-!	    PAR(39): 
-!	    PAR(40): 
+!	    PAR(39):
+!	    PAR(40):
 !	    PAR(41):
- 
+
 !	    PAR(42): X14
-!	    PAR(43): 
-!           PAR(44): 
-!	    PAR(45): 
+!	    PAR(43):
+!           PAR(44):
+!	    PAR(45):
 
 !	    PAR(46): Extra
-!	    PAR(47): 
-!	    PAR(48): 
-!	    PAR(49): 
+!	    PAR(47):
+!	    PAR(48):
+!	    PAR(49):
 !	    PAR(50):
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -102,7 +102,7 @@
         M=PAR(2)
 	N=PAR(3)
 	L=PAR(4)
-		
+
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
 	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
@@ -134,28 +134,48 @@
       DOUBLE PRECISION, INTENT(IN) :: T
 
       INTEGER, PARAMETER :: NDM=4
-      DOUBLE PRECISION PERIOD, X, EPS0, EPS1
+      DOUBLE PRECISION PERIOD, X, EPS0, EPS1,C12, C14
       DOUBLE PRECISION A, M, N, L, LMAX, D, aa, bb, P, Q, R, S
       DOUBLE PRECISION R0, R1, S0, S1, mu01, mu02, mu03, mu04, mu11, mu12, mu13, mu14, DUMMY
-      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X04(NDM), X11(NDM), X12(NDM), X13(NDM), X14(NDM), VEC(NDM) 
+      DOUBLE PRECISION X01(NDM), X02(NDM), X03(NDM), X04(NDM), X11(NDM), X12(NDM), X13(NDM), X14(NDM), VEC(NDM)
       DOUBLE PRECISION C1, P00, Q00, R00, P11, Q11, R11, XMAX, XMIN, Z, E0, F0, CC0, CC1, CC2, QA, QB, QC
       INTEGER K,j
 
 
-! INITIALIZE 
+! INITIALIZE
 
 ! Try Interval Length 20
-        PERIOD=20.D0
+!        PERIOD=24.D0
 
-        A=0.D0
-        M=-0.5D0
-	K=10
-	N=1.D0/K
+! Material Parameters A:Alpha, M:m, N:n
+!        A=0.D0
+!        M=-0.5D0
+!	K=10
+!	N=1.D0/K
+
+  open(unit=1,file="./starting_solution_parameters.dat")
+  read(1,*) PERIOD
+  read(1,*) A
+  read(1,*) M
+  read(1,*) N
+  read(1,*) EPS0
+  read(1,*) EPS1
+  read(1,*) C12
+  read(1,*) C14
+
+  print *, PERIOD
+  print *, A
+  print *, M
+  print *, N
+  print *, EPS0
+  print *, EPS1
+
+! All derived quantities: L:Lambda
 	LMAX = 2*(A-M-N)*(1+M)/((1+M+N)**2)
 	L=0.5*LMAX
 
 	C1 = 1.D0
-		
+
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
 	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
@@ -279,20 +299,20 @@
          PAR(2) = M
          PAR(3) = N
          PAR(4) = L
-	 PAR(5) = K    
-	 PAR(6)= C1
+	       PAR(5) = 111 !K
+	       PAR(6)= C1
 
-         PAR(7) = 8.1282436837416404E-05
- 	 PAR(8) = 0.00027899278715616039
+         PAR(7) = EPS0 !8.1282436837416404E-05
+ 	       PAR(8) = EPS1 !0.00027899278715616039
 
          PAR(9)= 0.E0
 !         PAR(9)= 1.0D-1
          PAR(10)= 1.E0
-         PAR(11)= 8.64794907E-07 
+         PAR(11)= 8.64794907E-07
 
          PAR(12)= 0.E0
-         PAR(13)= -2.52412665E-01
-	 PAR(14)= 9.67619681E-01
+         PAR(13)= C12 !-2.52412665E-01
+	       PAR(14)= C14 !9.67619681E-01
 
 
          PAR(15)= PERIOD
@@ -301,9 +321,9 @@
          PAR(18)= mu03
          PAR(19)= mu11
          PAR(20)= mu12
-	 PAR(21)= mu14
+	       PAR(21)= mu14
 
-         PAR(22)= X01(1) 
+         PAR(22)= X01(1)
          PAR(23)= X01(2)
          PAR(24)= X01(3)
          PAR(25)= X01(4)
@@ -337,7 +357,7 @@
 	 PAR(47)= X13(2)
 	 PAR(48)= X13(3)
 	 PAR(49)= X13(4)
-	
+
 
       END SUBROUTINE STPNT
 
@@ -368,7 +388,7 @@
 
 	EPS0=PAR(7)
 	EPS1=PAR(8)
-		
+
 	D=1.D0 + 2.D0*A - M - N
 	aa=(2.D0+2.D0*A-N)/D + 2.D0*(1.D0+A)*L/D
 	bb=(1.D0+M)    /D + (1.D0+M+N)*L/D
@@ -494,7 +514,7 @@
          PAR(20)= mu12
 	 PAR(21)= mu14
 
-         PAR(22)= X01(1) 
+         PAR(22)= X01(1)
          PAR(23)= X01(2)
          PAR(24)= X01(3)
          PAR(25)= X01(4)
@@ -646,13 +666,8 @@
       SUBROUTINE ICND
       END SUBROUTINE ICND
 
-      SUBROUTINE FOPT 
+      SUBROUTINE FOPT
       END SUBROUTINE FOPT
 
       SUBROUTINE PVLS
       END SUBROUTINE PVLS
-
-
-
-
-
