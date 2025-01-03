@@ -7,6 +7,7 @@ Created on Sun Oct  8 12:05:17 2017
 
 import matplotlib.pyplot as myplot
 import scipy as sp
+import scipy.special as spspecial
 import numpy as np
 #from scipy.integrate import odeint
 
@@ -203,7 +204,7 @@ def myr(t):
 
     DENOM1 = 0
     for j in range(0,K+1):
-        DENOM1 = DENOM1 + sp.misc.comb(K,j)*(E0**(K-j))*(F0**j)*(np.exp(j*t)) / (-K*W+j)
+        DENOM1 = DENOM1 + spspecial.comb(K,j)*(E0**(K-j))*(F0**j)*(np.exp(j*t)) / (-K*W+j)
 
     DENOM1 = (-K*W) * DENOM1
     
